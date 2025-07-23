@@ -29,11 +29,12 @@ def get_dominant_color(image_path: str, k: int = 5) -> str:
 def merge_foreground_background(
     foreground_path: str,
     background_path: str,
+    output_path: str,
     position: str = 'top',
     margin_ratio: float = 0.05,
     aspect_ratio: float = 4/3,
     foreground_ratio: float = 2/3
-) -> Image.Image:
+) -> str:
     """
     Merge a foreground image onto a background image with a specified aspect ratio (width/height, float) and adjustable foreground area.
     The background is cropped to the given aspect ratio. Foreground placement and size depend on the position:
@@ -52,7 +53,7 @@ def merge_foreground_background(
         foreground_ratio (float): Fraction of background occupied by foreground in the chosen direction (default 2/3).
 
     Returns:
-        Image.Image: The merged image (PIL Image object).
+        str: The output file path of the merged image.
     """
     bg = Image.open(background_path).convert('RGBA')
     fg = Image.open(foreground_path).convert('RGBA')
@@ -117,10 +118,12 @@ def merge_foreground_background(
 
     result = bg.copy()
     result.paste(fg, (x, y), fg)
-    return result
+    result.save(output_path)
+    return output_path
 
 def add_text_to_image(
-    image: Image.Image,
+    image_path: str,
+    output_path: str,
     text: str,
     position: str = 'bottom',
     margin_ratio: float = 0.05,
@@ -128,7 +131,7 @@ def add_text_to_image(
     font_path: str = None,
     font_color: str = '#000000',
     font_size: int = None
-) -> Image.Image:
+) -> str:
     """
     Add text to a specified area of the image (not covered by foreground), with margin and adjustable area ratio.
     Text area and position are always one of: 'top', 'bottom', 'left', 'right'.
@@ -149,9 +152,9 @@ def add_text_to_image(
         font_size (int): Font size (optional, auto-fit if None).
 
     Returns:
-        Image.Image: Image with text added.
+        str: The output file path of the image with text added.
     """
-    img = image.convert('RGBA')
+    img = Image.open(image_path).convert('RGBA')
     draw = ImageDraw.Draw(img)
     W, H = img.size
     margin = int(min(W, H) * margin_ratio)
@@ -229,4 +232,5 @@ def add_text_to_image(
         y = margin + (text_area_h - th) // 2
     # Draw text
     draw.multiline_text((x, y), wrapped, font=font, fill=font_color, align='center')
-    return img
+    img.save(output_path)
+    return output_path

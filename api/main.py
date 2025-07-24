@@ -1,6 +1,8 @@
-from fastapi import FastAPI, HTTPException, UploadFile, Form, Request
+
+from fastapi import FastAPI, HTTPException, UploadFile, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.params import File
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from typing import Optional, List
 import os
@@ -15,12 +17,10 @@ from core_agent.agent import run_birthday_card_graph
 
 STATIC_DIR = "static"
 MERGED_DIR = os.path.join(STATIC_DIR, "merged")
-
 os.makedirs(MERGED_DIR, exist_ok=True)
 
 app = FastAPI(title="Birthday Card API")
 
-# Allow all CORS (since UI may be on a different port)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -30,7 +30,6 @@ app.add_middleware(
 )
 
 # Serve static files
-from fastapi.staticfiles import StaticFiles
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 
@@ -38,6 +37,10 @@ class SampleImage(BaseModel):
     background_path: str
     foreground_path: str
     merged_image_path: str
+    merge_position: str = "top"
+    merge_margin_ratio: float
+    merge_aspect_ratio: float
+    merge_foreground_ratio: float
 
 class GenerateRequest(BaseModel):
     full_name: str
@@ -75,7 +78,11 @@ class FeedbackResponse(BaseModel):
 
 
 @app.get("/samples", response_model=List[SampleImage])
-def create_random_samples(n: int = 10):
+def create_random_samples(n: int = 10,
+                          merge_position: str = "top",
+                          merge_margin_ratio: float = 0.05,
+                          merge_aspect_ratio: float = 3/4,
+                          merge_foreground_ratio: float = 2/3):
     """Generate n random merged images (without text) and return their paths."""
     samples = []
     for _ in range(n):
@@ -88,15 +95,63 @@ def create_random_samples(n: int = 10):
             foreground_path=fg_path,
             background_path=bg_path,
             output_path=merged_path,
+            merge_position=merge_position,
+            margin_ratio=merge_margin_ratio,
+            aspect_ratio=merge_aspect_ratio,
+            foreground_ratio=merge_foreground_ratio,
         )
         samples.append(
             SampleImage(
                 background_path=bg_path,
                 foreground_path=fg_path,
                 merged_image_path=merged_path,
+                merge_position=merge_position,
+                merge_margin_ratio=merge_margin_ratio,
+                merge_aspect_ratio=merge_aspect_ratio,
+                merge_foreground_ratio=merge_foreground_ratio,
             )
         )
     return samples
+    
+@app.post("/merge", response_model=SampleImage)
+async def merge_images(file: UploadFile = File(...),
+                       merge_position: str = "top",
+                       merge_margin_ratio: float = 0.05,
+                       merge_aspect_ratio: float = 3/4,
+                       merge_foreground_ratio: float = 2/3):
+    """
+    Merge a foreground image (by path or upload) with a background (by path or random).
+    """
+    fg_dir = os.path.join(STATIC_DIR, "foregrounds/uploads")
+    os.makedirs(fg_dir, exist_ok=True)
+    fg_name = f"{uuid.uuid4().hex}.png"
+    fg_path = os.path.join(fg_dir, fg_name)
+    with open(fg_path, "wb") as f:
+        f.write(await file.read())
+
+    bg_path = get_random_background()
+
+    out_name = f"{uuid.uuid4().hex}.png"
+    merged_path = os.path.join(MERGED_DIR, out_name)
+    merge_foreground_background(
+        foreground_path=fg_path,
+        background_path=bg_path,
+        output_path=merged_path,
+        merge_position=merge_position,
+        margin_ratio=merge_margin_ratio,
+        aspect_ratio=merge_aspect_ratio,
+        foreground_ratio=merge_foreground_ratio,
+    )
+
+    return SampleImage(
+        background_path=bg_path,
+        foreground_path=fg_path,
+        merged_image_path=merged_path,
+        merge_position=merge_position,
+        merge_margin_ratio=merge_margin_ratio,
+        merge_aspect_ratio=merge_aspect_ratio,
+        merge_foreground_ratio=merge_foreground_ratio,
+        )
 
 
 def _ensure_paths(payload: GenerateRequest):

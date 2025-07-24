@@ -1,5 +1,6 @@
 import os
 import logging
+import uuid
 from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
 from langchain_core.runnables import Runnable
@@ -33,81 +34,78 @@ def _get_model(model_name: str = "misa-qwen3-235b") -> Runnable:
     return llm
 
 def input_node(input_data: dict) -> AgentState:
-    state = AgentState(
-        messages=[],
-        full_name=input_data.get("full_name"),
-        gender=input_data.get("gender"),
-        birthday=input_data.get("birthday"),
-        recipient=input_data.get("recipient"),
-        style=input_data.get("style"),
-        merged_image_path=input_data.get("merged_image_path"),
-        background_path=input_data.get("background_path"),
-        foreground_path=input_data.get("foreground_path"),
-    )
+    state = AgentState(**input_data)
     return state
 
-class TextAndColor(BaseModel):
-    font_color: str = Field(description="Hex code of the font color")
+
+# Tách riêng hai schema cho hai nhiệm vụ
+class GreetingTextOnly(BaseModel):
     greeting_text: str = Field(description="The greeting text")
-    
-def llm_suggest_text_and_color(state: AgentState) -> AgentState:
+
+class FontColorOnly(BaseModel):
+    font_color: str = Field(description="Hex code of the font color")
+
+def llm_suggest_greeting_text(state: AgentState) -> AgentState:
+    """
+    Chỉ sinh lại greeting_text, giữ nguyên font_color hiện tại.
+    """
     llm_with_tools = _get_model()
-    if llm_with_tools is None:
-        # Fallback nếu LLM không khả dụng
-        state["font_color"] = "#000000"
-        state["greeting_text"] = f"Chúc mừng sinh nhật {state['full_name']}!"
-        return state
-    prompt = user_prompt_template.format(
-        full_name=state["full_name"],
-        gender=state["gender"],
-        birthday=state["birthday"],
-        recipient=state["recipient"],
-        style=state["style"],
-        background_path=state["background_path"],
-        foreground_path=state["foreground_path"],
-        merged_image_path=state["merged_image_path"],
-    )
-    
+    prompt = user_prompt_template.format(**state)
     messages = [SystemMessage(content=system_prompt)] + [HumanMessage(content=prompt)]
-    parsed: TextAndColor = llm_with_tools.with_structured_output(TextAndColor).invoke(messages)
-    
+    parsed: GreetingTextOnly = llm_with_tools.with_structured_output(GreetingTextOnly).invoke(messages)
+    state["messages"].append(AIMessage(content=parsed.model_dump_json()))
+    state["greeting_text"] = parsed.greeting_text
+    return state
+
+def llm_suggest_font_color(state: AgentState) -> AgentState:
+    """
+    Chỉ sinh lại font_color, giữ nguyên greeting_text hiện tại.
+    """
+    llm_with_tools = _get_model()
+    prompt = user_prompt_template.format(**state)
+    messages = [SystemMessage(content=system_prompt)] + [HumanMessage(content=prompt)]
+    parsed: FontColorOnly = llm_with_tools.with_structured_output(FontColorOnly).invoke(messages)
     state["messages"].append(AIMessage(content=parsed.model_dump_json()))
     state["font_color"] = parsed.font_color
-    state["greeting_text"] = parsed.greeting_text
-    
     return state
 
 def merge_foreground_background_node(state: AgentState) -> AgentState:
     fg_path = state["foreground_path"]
     bg_path = state["background_path"]
-    fg_name = os.path.splitext(os.path.basename(fg_path))[0]
-    bg_name = os.path.splitext(os.path.basename(bg_path))[0]
-    output_path = f"static/merged/{bg_name}__{fg_name}_merged.png"
+    output_path = state.get("merged_image_path")
+    if not output_path:
+        output_path = f"static/merged/{uuid.uuid4().hex}.png"
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
     merge_foreground_background(
         foreground_path=fg_path,
         background_path=bg_path,
-        output_path=output_path
+        output_path=output_path,
+        merge_position=state.get("merge_position", "top"),
+        margin_ratio=state.get("merge_margin_ratio", 0.05),
+        aspect_ratio=state.get("merge_aspect_ratio", 3/4),
+        foreground_ratio=state.get("merge_foreground_ratio", 2/3),
     )
     state["merged_image_path"] = output_path
     return state
 
 def add_text_node(state: AgentState) -> AgentState:
     image_path = state["merged_image_path"]
-    img_name = os.path.splitext(os.path.basename(image_path))[0]
-    output_path = f"static/merged/{img_name}_with_text.png"
+    output_path = f"static/merged/{uuid.uuid4().hex}.png"
+
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
-    font_path = get_random_font()
-    
-    print(state.get("greeting_text"))
+    font_path = state.get("font_path") or get_random_font()
     add_text_to_image(
         image_path=image_path,
         output_path=output_path,
         text=state.get("greeting_text", ""),
-        font_color=state["font_color"],
-        font_path=font_path
+        font_color=state.get("font_color", "#000000"),
+        font_path=font_path,
+        font_size=state.get("font_size", 48),
+        text_position=state.get("text_position", "bottom"),
+        margin_ratio=state.get("text_margin_ratio", 0.05),
+        text_ratio=state.get("text_ratio", 1/3),
     )
-    state["merged_image_path"] = output_path
+    state["merged_with_text_path"] = output_path
     state["font_path"] = font_path
     return state
 
@@ -119,12 +117,8 @@ def dominant_color_node(state: AgentState) -> AgentState:
 
 def feedback_node(state: AgentState) -> AgentState:
     llm_with_tools = _get_model()
-    if llm_with_tools is None:
-        # Nếu không có LLM, bỏ qua xử lý feedback và trả về state như cũ
-        return state
-    feedback_content = state.get("feedback")
-    if feedback_content is None:
-        feedback_content = ""
+    
+    feedback_content = state.get("feedback") or ""
     user_msg = HumanMessage(content=feedback_content)
     messages = state["messages"] + [user_msg]
     response = llm_with_tools.invoke(messages)

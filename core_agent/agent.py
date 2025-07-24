@@ -2,7 +2,8 @@ from core_agent.utils.nodes import (
     input_node,
     merge_foreground_background_node,
     dominant_color_node,
-    llm_suggest_text_and_color,
+    llm_suggest_greeting_text,
+    llm_suggest_font_color,
     add_text_node,
     feedback_node,
     tool_node
@@ -18,15 +19,18 @@ def build_birthday_card_graph() -> StateGraph:
     graph.add_node("input", input_node)
     graph.add_node("merge_foreground_background", merge_foreground_background_node)
     graph.add_node("dominant_color", dominant_color_node)
-    graph.add_node("llm_suggest_text_and_color", llm_suggest_text_and_color)
+    graph.add_node("llm_suggest_greeting_text", llm_suggest_greeting_text)
+    graph.add_node("llm_suggest_font_color", llm_suggest_font_color)
     graph.add_node("add_text", add_text_node)
     graph.add_node("feedback", feedback_node)
     graph.add_node("tools", tool_node)
 
+    # Flow: input -> merge -> color -> text -> color -> add_text -> feedback
     graph.add_edge("input", "merge_foreground_background")
     graph.add_edge("merge_foreground_background", "dominant_color")
-    graph.add_edge("dominant_color", "llm_suggest_text_and_color")
-    graph.add_edge("llm_suggest_text_and_color", "add_text")
+    graph.add_edge("dominant_color", "llm_suggest_greeting_text")
+    graph.add_edge("llm_suggest_greeting_text", "llm_suggest_font_color")
+    graph.add_edge("llm_suggest_font_color", "add_text")
     graph.add_edge("add_text", "feedback")
     graph.add_conditional_edges("feedback", tools_condition)
 
@@ -36,7 +40,7 @@ def build_birthday_card_graph() -> StateGraph:
 
 def run_birthday_card_graph(input_data: dict, thread_id: str = None) -> dict:
     graph = build_birthday_card_graph()
-    compiled_graph = graph.compile(checkpoint=MemorySaver())
+    compiled_graph = graph.compile(checkpointer=MemorySaver())
     
     # from PIL import Image
 

@@ -2,6 +2,8 @@ from PIL import ImageDraw, ImageFont
 from PIL import Image, ImageDraw, ImageFont
 import numpy as np
 from sklearn.cluster import KMeans
+import os
+import random
 
 def get_dominant_color(image_path: str, k: int = 5) -> str:
     """
@@ -16,7 +18,7 @@ def get_dominant_color(image_path: str, k: int = 5) -> str:
     """
     image = Image.open(image_path)
     image = image.convert('RGB')
-    image = image.resize((100, 100))  # speedup
+    image = image.resize((100, 100))
     arr = np.array(image).reshape(-1, 3)
 
     kmeans = KMeans(n_clusters=k, n_init='auto')
@@ -32,7 +34,7 @@ def merge_foreground_background(
     output_path: str,
     position: str = 'top',
     margin_ratio: float = 0.05,
-    aspect_ratio: float = 4/3,
+    aspect_ratio: float = 3/4,
     foreground_ratio: float = 2/3
 ) -> str:
     """
@@ -234,3 +236,50 @@ def add_text_to_image(
     draw.multiline_text((x, y), wrapped, font=font, fill=font_color, align='center')
     img.save(output_path)
     return output_path
+
+def get_random_background() -> str:
+    """
+    Randomly select a background image from static/backgrounds/ with the pattern back_{i}.*.
+
+    Returns:
+        str: The file path to the randomly selected background image.
+    """
+    backgrounds_dir = os.path.join('static', 'backgrounds')
+    files = [f for f in os.listdir(backgrounds_dir) if f.startswith('back_')]
+    if not files:
+        raise FileNotFoundError('No background images found in static/backgrounds/')
+    selected = random.choice(files)
+    return os.path.join(backgrounds_dir, selected)
+
+
+def get_random_foreground() -> str:
+    """
+    Randomly select a foreground image from static/foregrounds/ with the pattern fore_{i}.*.
+
+    Returns:
+        str: The file path to the randomly selected foreground image.
+    """
+    foregrounds_dir = os.path.join('static', 'foregrounds')
+    files = [f for f in os.listdir(foregrounds_dir) if f.startswith('fore_')]
+    if not files:
+        raise FileNotFoundError('No foreground images found in static/foregrounds/')
+    selected = random.choice(files)
+    return os.path.join(foregrounds_dir, selected)
+
+
+def get_random_font() -> str:
+    """
+    Randomly select a font file from static/fonts/ with the extension .ttf or .otf.
+
+    Returns:
+        str: The file path to the randomly selected font file.
+    """
+
+    fonts_dir = os.path.join("static", "fonts")
+    files = [f for f in os.listdir(fonts_dir) if f.endswith(".ttf") or f.endswith(".otf")]
+    if not files:
+        raise FileNotFoundError("No font files found in static/fonts/")
+    return os.path.join(fonts_dir, random.choice(files))
+
+
+tools = [get_dominant_color, merge_foreground_background, get_random_background, get_random_foreground, get_random_font]

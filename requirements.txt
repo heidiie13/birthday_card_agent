@@ -1,0 +1,12 @@
+# api
+fastapi[standard]
+scikit-learn
+
+# core agent
+langgraph
+langchain-core
+langchain-openai
+
+# ui
+streamlit
+streamlit_image_select

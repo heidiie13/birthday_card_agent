@@ -5,7 +5,7 @@ from sklearn.cluster import KMeans
 import os
 import random
 
-def get_dominant_color(image_path: str, k: int = 5) -> str:
+def get_dominant_color(image_path: str, k: int = 3) -> str:
     """
     Get dominant color using KMeans clustering.
 
@@ -89,7 +89,6 @@ def merge_foreground_background(
     fg_ratio = fg_w / fg_h
 
     # Always allow 4 positions: top, bottom, left, right
-    # Foreground occupies 2/3 theo hướng position, 1/3 còn lại cho text
     if merge_position in ['top', 'bottom']:
         fg_max_h = int(bg_h * foreground_ratio) - margin
         fg_max_w = bg_w - 2 * margin

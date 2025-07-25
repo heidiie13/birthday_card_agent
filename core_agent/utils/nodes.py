@@ -33,97 +33,92 @@ def _get_model(model_name: str = "misa-qwen3-235b") -> Runnable:
         return None
     return llm
 
-def input_node(input_data: dict) -> AgentState:
-    state = AgentState(**input_data)
+
+class ResponseLLM(BaseModel):
+    greeting_text: str = Field(description="Lời chúc tiếng Việt")
+    font_color: str = Field(description="Mã màu hex cho chữ")
+    merge_foreground_ratio: float = Field(description="Tỉ lệ foreground")
+    text_ratio: float = Field(description="Tỉ lệ vùng text")
+    merge_position: str = Field(description="Vị trí foreground")
+    font_size: int = Field(description="Cỡ chữ")
+
+def input_node(input_data: AgentState) -> AgentState:
+    state = AgentState(**input_data.model_dump())
     return state
 
-
-# Tách riêng hai schema cho hai nhiệm vụ
-class GreetingTextOnly(BaseModel):
-    greeting_text: str = Field(description="The greeting text")
-
-class FontColorOnly(BaseModel):
-    font_color: str = Field(description="Hex code of the font color")
-
-def llm_suggest_greeting_text(state: AgentState) -> AgentState:
-    """
-    Chỉ sinh lại greeting_text, giữ nguyên font_color hiện tại.
-    """
+def llm_node(state: AgentState) -> AgentState:
     llm_with_tools = _get_model()
-    prompt = user_prompt_template.format(**state)
+    prompt = user_prompt_template.format(**state.model_dump())
     messages = [SystemMessage(content=system_prompt)] + [HumanMessage(content=prompt)]
-    parsed: GreetingTextOnly = llm_with_tools.with_structured_output(GreetingTextOnly).invoke(messages)
-    state["messages"].append(AIMessage(content=parsed.model_dump_json()))
-    state["greeting_text"] = parsed.greeting_text
-    return state
-
-def llm_suggest_font_color(state: AgentState) -> AgentState:
-    """
-    Chỉ sinh lại font_color, giữ nguyên greeting_text hiện tại.
-    """
-    llm_with_tools = _get_model()
-    prompt = user_prompt_template.format(**state)
-    messages = [SystemMessage(content=system_prompt)] + [HumanMessage(content=prompt)]
-    parsed: FontColorOnly = llm_with_tools.with_structured_output(FontColorOnly).invoke(messages)
-    state["messages"].append(AIMessage(content=parsed.model_dump_json()))
-    state["font_color"] = parsed.font_color
-    return state
-
-def merge_foreground_background_node(state: AgentState) -> AgentState:
-    fg_path = state["foreground_path"]
-    bg_path = state["background_path"]
-    output_path = state.get("merged_image_path")
-    if not output_path:
-        output_path = f"static/merged/{uuid.uuid4().hex}.png"
-    os.makedirs(os.path.dirname(output_path), exist_ok=True)
-    merge_foreground_background(
-        foreground_path=fg_path,
-        background_path=bg_path,
-        output_path=output_path,
-        merge_position=state.get("merge_position", "top"),
-        margin_ratio=state.get("merge_margin_ratio", 0.05),
-        aspect_ratio=state.get("merge_aspect_ratio", 3/4),
-        foreground_ratio=state.get("merge_foreground_ratio", 2/3),
-    )
-    state["merged_image_path"] = output_path
+    parsed: ResponseLLM = llm_with_tools.with_structured_output(ResponseLLM).invoke(messages)
+    state.messages.append(AIMessage(content=parsed.model_dump_json()))
+    state.greeting_text = parsed.greeting_text
+    state.font_color = parsed.font_color
+    state.merge_foreground_ratio = parsed.merge_foreground_ratio
+    state.text_ratio = parsed.text_ratio
+    state.merge_position = parsed.merge_position
+    state.font_size = parsed.font_size
     return state
 
 def add_text_node(state: AgentState) -> AgentState:
-    image_path = state["merged_image_path"]
+    image_path = state.merged_image_path
     output_path = f"static/merged/{uuid.uuid4().hex}.png"
 
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
-    font_path = state.get("font_path") or get_random_font()
+    font_path = state.font_path or get_random_font()
     add_text_to_image(
         image_path=image_path,
         output_path=output_path,
-        text=state.get("greeting_text", ""),
-        font_color=state.get("font_color", "#000000"),
+        text=state.greeting_text,
+        font_color=state.font_color,
         font_path=font_path,
-        font_size=state.get("font_size", 48),
-        text_position=state.get("text_position", "bottom"),
-        margin_ratio=state.get("text_margin_ratio", 0.05),
-        text_ratio=state.get("text_ratio", 1/3),
+        font_size=state.font_size,
+        text_position=state.text_position,
+        margin_ratio=state.text_margin_ratio,
+        text_ratio=state.text_ratio,
     )
-    state["merged_with_text_path"] = output_path
-    state["font_path"] = font_path
+    state.merged_with_text_path = output_path
+    state.font_path = font_path
     return state
 
 def dominant_color_node(state: AgentState) -> AgentState:
-    bg_path = state["background_path"]
+    bg_path = state.background_path
     color = get_dominant_color(bg_path)
-    state["dominant_color"] = color
+    state.dominant_color = color
     return state
 
-def feedback_node(state: AgentState) -> AgentState:
-    llm_with_tools = _get_model()
-    
-    feedback_content = state.get("feedback") or ""
-    user_msg = HumanMessage(content=feedback_content)
-    messages = state["messages"] + [user_msg]
-    response = llm_with_tools.invoke(messages)
-    state["messages"].append(user_msg)
-    state["messages"].append(response)
+def merge_node(state: AgentState) -> AgentState:
+    """Merge foreground and background with dynamic layout based on greeting length."""
+    # Default ratios
+    long_text_threshold = 40  # words
+    default_fg_ratio = 2/3
+    long_text_fg_ratio = 1/3
+
+    greeting_words = len(state.greeting_text.split())
+    fg_ratio = long_text_fg_ratio if greeting_words > long_text_threshold else default_fg_ratio
+    text_ratio = 1 - fg_ratio
+
+    output_path = f"static/merged/{uuid.uuid4().hex}.png"
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+
+    merge_position = state.merge_position
+    margin_ratio = state.merge_margin_ratio
+    aspect_ratio = state.aspect_ratio
+
+    merge_foreground_background(
+        foreground_path=state.foreground_path,
+        background_path=state.background_path,
+        output_path=output_path,
+        merge_position=merge_position,
+        margin_ratio=margin_ratio,
+        aspect_ratio=aspect_ratio,
+        foreground_ratio=fg_ratio,
+    )
+
+    state.merged_image_path = output_path
+    state.merge_foreground_ratio = fg_ratio
+    state.text_ratio = text_ratio
     return state
+
 
 tool_node = ToolNode(tools)

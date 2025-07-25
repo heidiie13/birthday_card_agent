@@ -9,4 +9,3 @@ langchain-openai
 
 # ui
 streamlit
-streamlit_image_select

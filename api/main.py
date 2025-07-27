@@ -1,4 +1,3 @@
-
 from typing import List
 import os, sys
 import random
@@ -10,10 +9,10 @@ from fastapi import FastAPI, HTTPException, UploadFile, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.params import File
 from fastapi.staticfiles import StaticFiles
-from core_agent.agent import build_birthday_card_graph
-from api.models import MergedImageResponse, GenerateRequest, GenerateResponse
+from core_ai.graph import build_birthday_card_graph
+from api.models import MergedImageResponse, GenerateRequest, GenerateResponse, MergePosition
 
-from core_agent.utils.tools import (
+from core_ai.utils.tools import (
     get_random_background,
     get_random_foreground,
     merge_foreground_background,
@@ -40,15 +39,15 @@ app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 graph = build_birthday_card_graph()
 
 
-@app.get("/samples", response_model=List[MergedImageResponse])
-def create_random_samples(request: Request,
+@app.get("/templates", response_model=List[MergedImageResponse])
+def create_random_template(request: Request,
                           n: int = 10,
-                          merge_position: str = "top",
-                          merge_margin_ratio: float = 0.05,
-                          merge_aspect_ratio: float = 3/4,
-                          merge_foreground_ratio: float = 2/3):
-    """Generate n random merged images (without text) and return their paths."""
-    samples = []
+                          merge_aspect_ratio: float = 3/4):
+    """Create a list of random templates by merging foregrounds and backgrounds."""
+    if n <= 0:
+        raise HTTPException(status_code=400, detail="Number of templates must be positive.")
+    
+    templates = []
     for _ in range(n):
         bg_path = get_random_background()
         fg_path = get_random_foreground()
@@ -57,48 +56,48 @@ def create_random_samples(request: Request,
         merged_path = os.path.join(MERGED_DIR, out_name)
 
         if abs(merge_aspect_ratio - 16/9) < 0.01:
-            merge_position = random.choice(["left", "right"])
+            merge_position = random.choice([MergePosition.LEFT, MergePosition.RIGHT])
         else:
-            merge_position = random.choice(["top", "bottom"])
+            merge_position = random.choice([MergePosition.TOP, MergePosition.BOTTOM])
         
-        merge_foreground_background(
+        img = merge_foreground_background(
             foreground_path=fg_path,
             background_path=bg_path,
             output_path=merged_path,
-            merge_position=merge_position,
-            margin_ratio=merge_margin_ratio,
+            merge_position=merge_position.value,
             aspect_ratio=merge_aspect_ratio,
-            foreground_ratio=merge_foreground_ratio,
         )
         base_url = str(request.base_url).rstrip("/")
         merged_image_url = f"{base_url}/{merged_path}"
         
-        samples.append(
+        templates.append(
             MergedImageResponse(
                 background_path=bg_path,
                 foreground_path=fg_path,
                 merged_image_path=merged_path,
                 aspect_ratio=merge_aspect_ratio,
                 merge_position=merge_position,
-                merge_margin_ratio=merge_margin_ratio,
-                merge_foreground_ratio=merge_foreground_ratio,
+                merge_margin_ratio=img["merge_margin_ratio"],
+                merge_foreground_ratio=img["merge_foreground_ratio"],
                 merged_image_url=merged_image_url,
             )
         )
-    return samples
+    return templates
     
-@app.post("/upload_sample", response_model=MergedImageResponse)
-async def upload_sample(request = Request, 
+@app.post("/upload-template", response_model=MergedImageResponse)
+async def upload_template(request = Request, 
                        file: UploadFile = File(...),
-                       merge_position: str = "top",
-                       merge_margin_ratio: float = 0.05,
-                       merge_aspect_ratio: float = 3/4,
-                       merge_foreground_ratio: float = 2/3):
+                       merge_aspect_ratio: float = 3/4):
     """
-    Merge a foreground image (by path or upload) with a background (by path or random).
+    Upload a foreground image and merge it with a random background.
     """
     fg_dir = os.path.join(STATIC_DIR, "foregrounds/uploads")
     os.makedirs(fg_dir, exist_ok=True)
+    if abs(merge_aspect_ratio - 16/9) < 0.01:
+        merge_position = random.choice([MergePosition.LEFT, MergePosition.RIGHT])
+    else:
+        merge_position = random.choice([MergePosition.TOP, MergePosition.BOTTOM])
+        
     fg_name = f"{uuid.uuid4().hex}.png"
     fg_path = os.path.join(fg_dir, fg_name)
     with open(fg_path, "wb") as f:
@@ -108,14 +107,12 @@ async def upload_sample(request = Request,
 
     out_name = f"{uuid.uuid4().hex}.png"
     merged_path = os.path.join(MERGED_DIR, out_name)
-    merge_foreground_background(
+    img = merge_foreground_background(
         foreground_path=fg_path,
         background_path=bg_path,
         output_path=merged_path,
-        merge_position=merge_position,
-        margin_ratio=merge_margin_ratio,
+        merge_position=merge_position.value,
         aspect_ratio=merge_aspect_ratio,
-        foreground_ratio=merge_foreground_ratio,
     )
     base_url = str(request.base_url).rstrip("/")
     merged_image_url = f"{base_url}/{merged_path}"
@@ -126,12 +123,12 @@ async def upload_sample(request = Request,
         merged_image_path=merged_path,
         aspect_ratio=merge_aspect_ratio,
         merge_position=merge_position,
-        merge_margin_ratio=merge_margin_ratio,
-        merge_foreground_ratio=merge_foreground_ratio,
+        merge_margin_ratio=img["merge_margin_ratio"],
+        merge_foreground_ratio= img["merge_foreground_ratio"],
         merged_image_url=merged_image_url,
     )
 
-@app.post("/generate", response_model=GenerateResponse)
+@app.post("/generate-card", response_model=GenerateResponse)
 def generate_card(req: GenerateRequest, request: Request):
     """Generate a birthday card with text."""
 

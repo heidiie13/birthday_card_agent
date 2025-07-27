@@ -7,10 +7,10 @@ class AgentState(BaseModel):
     messages: List[AnyMessage] = []
 
     # User info and style
-    full_name: str
-    gender: str
-    birthday: str
-    extra_requirements: Optional[str] = None
+    full_name: str = "Nguyễn Văn A"
+    gender: str = "Nam"
+    birthday: str = "2000-01-01"
+    greeting_text_instructions: Optional[str] = None
 
     # Image info
     background_path: Optional[str] = None
@@ -28,11 +28,11 @@ class AgentState(BaseModel):
     merge_position: str = "top"
     merge_margin_ratio: float = 0.05
     aspect_ratio: float = 3/4
-    merge_foreground_ratio: float = 2/3
+    merge_foreground_ratio: float = 1/2
 
     # Text params
     text_position: str = "bottom"
-    text_margin_ratio: float = 0.05
-    text_ratio: float = 1/3
-    font_size: int = 20
+    text_margin_ratio: float = 0.07
+    text_ratio: float = 1/2
+    font_size: int = 70
    

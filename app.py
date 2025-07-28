@@ -1,15 +1,19 @@
-import streamlit as st
 import requests
+import os
+from dotenv import load_dotenv
+import streamlit as st
 from typing import List, Dict
 from datetime import datetime, timedelta
 
-API_URL = "http://localhost:8000"
+load_dotenv()
+
+BACKEND_URL = os.getenv("BACKEND_URL")
 
 st.set_page_config(page_title="Birthday Card Generator", layout="centered")
 
 def fetch_templates(aspect_ratio_val) -> List[Dict]:
     try:
-        resp = requests.get(f"{API_URL}/templates", params={"n": 8, "merge_aspect_ratio": aspect_ratio_val})
+        resp = requests.get(f"{BACKEND_URL}/templates", params={"n": 8, "merge_aspect_ratio": aspect_ratio_val})
         resp.raise_for_status()
         return resp.json()
     except Exception as e:
@@ -42,12 +46,12 @@ def main():
         uploaded_foreground = st.file_uploader(label="Chọn mẫu", accept_multiple_files=False, type=["png", "jpg", "jpeg", "webp"])
         if uploaded_foreground:
             files = {"file": uploaded_foreground}
-            merge_resp = requests.post(f"{API_URL}/upload-template", files=files, params={"merge_aspect_ratio": aspect_ratio_val})
+            merge_resp = requests.post(f"{BACKEND_URL}/upload-template", files=files, params={"merge_aspect_ratio": aspect_ratio_val})
             merge_resp.raise_for_status()
             merge_data = merge_resp.json()
             merged_preview_url = merge_data.get("merged_image_path")
             if merged_preview_url:
-                merged_preview_url = f"{API_URL}/{merged_preview_url}"
+                merged_preview_url = f"{BACKEND_URL}/{merged_preview_url}"
             st.image(merged_preview_url, caption="Xem trước (ảnh ghép)", width=240)
             selected_template = {
                 "background_path": merge_data["background_path"],
@@ -85,12 +89,12 @@ def main():
 
     elif mode == "Ngẫu nhiên":
         if st.button("Chọn mẫu ngẫu nhiên") or "random_template" not in st.session_state:
-            resp = requests.get(f"{API_URL}/templates", params={"n":1, "merge_aspect_ratio": aspect_ratio_val})
+            resp = requests.get(f"{BACKEND_URL}/templates", params={"n":1, "merge_aspect_ratio": aspect_ratio_val})
             resp.raise_for_status()
             st.session_state["random_template"] = resp.json()[0]
         selected_template = st.session_state["random_template"]
         img_url = selected_template["merged_image_path"]
-        img_url = f"{API_URL}/{img_url}"
+        img_url = f"{BACKEND_URL}/{img_url}"
         st.image(img_url, width=220, caption="Mẫu ngẫu nhiên")
 
     with st.form("generate_form"):
@@ -142,14 +146,15 @@ def main():
                     "merge_foreground_ratio": selected_template["merge_foreground_ratio"],
                 })
 
-            with st.status("Đang tạo thiệp, vui lòng chờ...", expanded=True):
+            with st.spinner("Đang tạo thiệp, vui lòng chờ..."):
                 try:
-                    resp = requests.post(f"{API_URL}/generate-card", json=payload)
+                    resp = requests.post(f"{BACKEND_URL}/generate-card", json=payload)
                     resp.raise_for_status()
                     state = resp.json()
                     st.session_state["card_state"] = state
+                    st.success("✅ Thiệp đã được tạo thành công!")
                 except Exception as e:
-                    st.error("Lỗi khi tạo thiệp")
+                    st.error("Lỗi khi tạo thiệp.")
                     st.stop()
 
     if "card_state" in st.session_state:

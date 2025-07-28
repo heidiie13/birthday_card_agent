@@ -1,4 +1,6 @@
 from PIL import ImageDraw, ImageFont, Image, ImageDraw, ImageFont
+from pilmoji import Pilmoji
+from pilmoji.source import GoogleEmojiSource
 from collections import Counter
 import os
 import random
@@ -246,9 +248,11 @@ def add_text_to_image(
     elif text_position == 'right':
         x = W - text_area_w - margin + (text_area_w - tw) // 2
         y = margin + (text_area_h - th) // 2
+        
     # Draw text
-    draw.multiline_text((x, y), wrapped, font=font, fill=font_color, align='center')
-
+    with Pilmoji(img, source=GoogleEmojiSource()) as pilmoji:
+        pilmoji.text((x, y), wrapped, font=font, fill=font_color, align='center')
+    
     img.save(output_path)
     return {
         "image_path": image_path,

@@ -59,7 +59,10 @@ def llm_node(state: AgentState) -> AgentState:
             SystemMessage(content=sys_prompt),
             HumanMessage(content=user_prompt)
         ]
-        parsed: ResponseLLM = llm.with_structured_output(ResponseLLM).invoke(messages)
+        # parsed: ResponseLLM = llm.with_structured_output(ResponseLLM).invoke(messages)
+        response = llm.invoke(messages)
+        parsed: ResponseLLM = ResponseLLM(**extract_json(response.content))
+        
         logger.info(f"Response from LLM: {parsed}")
     except Exception as e:
         logger.error(f"Error creating messages: {e}")
@@ -131,10 +134,13 @@ def merge_node(state: AgentState) -> AgentState:
     else:
         state.merge_foreground_ratio = 1/3
         state.font_size = 60
-        
-    state.merge_foreground_ratio = 1 / 2 if state.aspect_ratio == 16 / 9 else state.merge_foreground_ratio
-    state.text_ratio = 1 - state.merge_foreground_ratio
 
+
+    if state.aspect_ratio == 16 / 9:
+        state.merge_foreground_ratio = 1 / 2
+        state.font_size = 90
+
+    state.text_ratio = 1 - state.merge_foreground_ratio
 
     # Perform merge
     output_path = f"static/merged/{uuid.uuid4().hex}.png"

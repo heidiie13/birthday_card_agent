@@ -1,0 +1,10 @@
+# api
+fastapi[standard]
+
+# core agent
+langgraph
+langchain-core
+langchain-openai
+
+# ui
+streamlit

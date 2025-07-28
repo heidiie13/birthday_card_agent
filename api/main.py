@@ -137,7 +137,7 @@ def generate_card(req: GenerateRequest, request: Request):
         "gender": req.gender,
         "birthday": req.birthday,
         "aspect_ratio": req.aspect_ratio,
-        "extra_requirements": req.extra_requirements,
+        "greeting_text_instructions": req.greeting_text_instructions,
         "background_path": req.background_path,
         "foreground_path": req.foreground_path,
         "merged_image_path": req.merged_image_path,

@@ -1,6 +1,7 @@
 import os
 import logging
 import uuid
+from datetime import datetime
 from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
 from langchain_core.runnables import Runnable
@@ -19,18 +20,13 @@ def _get_model() -> Runnable:
             base_url=os.getenv("OPENAI_BASE_URL"),
             api_key=os.getenv("OPENAI_API_KEY"),
             model=os.getenv("MODEL_NAME"),
+            temperature=0.7,
+            default_headers={"App-Code": "fresher"},
+            extra_body={
+                "service": "test_agent_app",
+                "chat_template_kwargs": {"enable_thinking": False}
+            }
         )
-        # llm = ChatOpenAI(
-        #     base_url=os.getenv("OPENAI_BASE_URL"),
-        #     api_key=os.getenv("OPENAI_API_KEY"),
-        #     model=model_name,
-        #     temperature=0.7,
-        #     default_headers={"App-Code": "fresher"},
-        #     extra_body={
-        #         "service": "test_agent_app",
-        #         "chat_template_kwargs": {"enable_thinking": False}
-        #     }
-        # )
     except Exception as e:
         logger.error(f"Error getting model: {e}")
         return None
@@ -42,10 +38,22 @@ class ResponseLLM(BaseModel):
     font_color: str = Field(description="Font color in hex format, e.g., #FFFFFF")
 
 def llm_node(state: AgentState) -> AgentState:
+    now = datetime.now().strftime("%d/%m/%Y")
     llm = _get_model()
     prompt = user_prompt_template.format(**state.model_dump())
-    messages = [SystemMessage(content=system_prompt)] + [HumanMessage(content=prompt)]
-    parsed: ResponseLLM = llm.with_structured_output(ResponseLLM).invoke(messages)
+    sys_prompt = system_prompt.format(dominant_color = state.dominant_color, current_time = now)
+
+    try:
+        messages = [
+            SystemMessage(content=sys_prompt),
+            HumanMessage(content=prompt)
+        ]
+        parsed: ResponseLLM = llm.with_structured_output(ResponseLLM).invoke(messages)
+        logger.info(f"{parsed}")
+    except Exception as e:
+        logger.error(f"Error creating messages: {e}")
+        return state
+    
     state.messages.append(AIMessage(content=parsed.model_dump_json()))
     state.greeting_text = parsed.greeting_text
     state.font_color = parsed.font_color
@@ -57,17 +65,22 @@ def add_text_node(state: AgentState) -> AgentState:
 
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
     font_path = state.font_path or get_random_font()
-    add_text_to_image(
-        image_path=image_path,
-        output_path=output_path,
-        text=state.greeting_text,
-        font_color=state.font_color,
-        font_path=font_path,
-        font_size=state.font_size,
-        text_position=state.text_position,
-        margin_ratio=state.text_margin_ratio,
-        text_ratio=state.text_ratio,
-    )
+    try:
+        img = add_text_to_image(
+            image_path=image_path,
+            output_path=output_path,
+            text=state.greeting_text,
+            font_color=state.font_color,
+            font_path=font_path,
+            font_size=state.font_size,
+            text_position=state.text_position,
+            margin_ratio=state.text_margin_ratio,
+            text_ratio=state.text_ratio,
+        )
+    except Exception as e:
+        logger.error(f"Error adding text to image: {e}")
+        return state
+
     state.merged_with_text_path = output_path
     state.font_path = font_path
     return state
@@ -76,11 +89,9 @@ def dominant_color_node(state: AgentState) -> AgentState:
     bg_path = state.background_path
     color = get_dominant_color(bg_path)
     state.dominant_color = color
+    logger.info(f"Dominant color: {color}")
+    
     return state
-
-import os
-import uuid
-from .tools import merge_foreground_background
 
 def merge_node(state: AgentState) -> AgentState:
     """Process merging foreground and background images with updated state."""

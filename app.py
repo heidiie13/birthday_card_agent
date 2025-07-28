@@ -106,7 +106,7 @@ def main():
             format="DD/MM/YYYY",
             help="Chọn ngày sinh theo định dạng ngày/tháng/năm (VD: 28/07/2000)"
         )
-        extra_req = st.text_area("Hướng dẫn sinh nội dung thiệp")
+        greeting_text_instructions = st.text_area("Hướng dẫn sinh nội dung thiệp")
         submitted = st.form_submit_button("Tạo thiệp")
 
         if submitted:
@@ -129,7 +129,7 @@ def main():
                 "gender": gender,
                 "birthday": birthday.isoformat(),
                 "aspect_ratio": aspect_ratio_val,
-                "extra_requirements": extra_req or None,
+                "greeting_text_instructions": greeting_text_instructions or None,
             }
             if selected_template:
                 payload.update({
@@ -142,6 +142,8 @@ def main():
                     "merge_foreground_ratio": selected_template["merge_foreground_ratio"],
                 })
 
+            import json
+            print(json.dumps(payload, indent=2, default=str))
             with st.status("Đang tạo thiệp, vui lòng chờ...", expanded=True):
                 try:
                     resp = requests.post(f"{API_URL}/generate-card", json=payload)

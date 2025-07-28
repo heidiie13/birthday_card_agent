@@ -44,7 +44,7 @@ class GenerateRequest(MergedImage):
     full_name: str = Field(..., description="Full name of the person")
     gender: str = Field(..., description="Gender of the person")
     birthday: str = Field(..., description="Birthday in ISO format (YYYY-MM-DD)")
-    extra_requirements: Optional[str] = None
+    greeting_text_instructions: Optional[str] = None
 
 class GenerateResponse(BaseModel):
     image_url: str

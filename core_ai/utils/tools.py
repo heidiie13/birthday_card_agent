@@ -8,9 +8,9 @@ def get_dominant_color(image_path: str, resize=50) -> str:
         raise FileNotFoundError(f"Image file not found: {image_path}")
     
     img = Image.open(image_path).convert("RGB")
-    img = img.resize((resize, resize))  # Resize nhỏ để giảm tính toán
+    img = img.resize((resize, resize))
     pixels = list(img.getdata())
-    most_common = Counter(pixels).most_common(1)[0][0]  # pixel phổ biến nhất
+    most_common = Counter(pixels).most_common(1)[0][0]
     return '#{:02x}{:02x}{:02x}'.format(*most_common)
 
 def merge_foreground_background(
@@ -260,127 +260,6 @@ def add_text_to_image(
         "font_path": font_path,
         "font_color": font_color,
         "font_size": cur_font_size,
-    }
-
-def add_text_to_image(
-    image_path: str,
-    output_path: str,
-    text: str,
-    text_position: str = 'bottom',
-    margin_ratio: float = 0.05,
-    text_ratio: float = 1/2,
-    font_path: str = None,
-    font_color: str = '#000000',
-    font_size: int = None
-) -> dict:
-    from PIL import Image, ImageDraw, ImageFont
-    import os
-
-    if not os.path.exists(image_path):
-        raise FileNotFoundError(f"Image file not found: {image_path}")
-
-    # Open and upscale image
-    scale = 4
-    img_orig = Image.open(image_path).convert('RGB')
-    W_orig, H_orig = img_orig.size
-    W, H = W_orig * scale, H_orig * scale
-    img = img_orig.resize((W, H), resample=Image.LANCZOS)
-    draw = ImageDraw.Draw(img)
-    margin = int(min(W, H) * margin_ratio)
-
-    if text_ratio is None:
-        text_ratio = 1 - (2/3)
-    if text_ratio > 1:
-        text_ratio = 1.0
-
-    if text_position in ['top', 'bottom']:
-        text_area_h = int(H * text_ratio) - margin
-        text_area_w = W - 2 * margin
-    elif text_position in ['left', 'right']:
-        text_area_w = int(W * text_ratio) - margin
-        text_area_h = H - 2 * margin
-    else:
-        raise ValueError("position must be one of 'top', 'bottom', 'left', 'right'")
-
-    # Font size logic
-    if font_size is None:
-        cur_font_size = text_area_h // 3
-    else:
-        cur_font_size = font_size * scale
-
-    if font_path:
-        font = ImageFont.truetype(font_path, cur_font_size)
-    else:
-        font = ImageFont.load_default()
-
-    # Word wrapping
-    def get_wrapped(text, font, max_width):
-        lines = []
-        for paragraph in text.split('\n'):
-            if not paragraph:
-                lines.append('')
-                continue
-            line = ''
-            for word in paragraph.split(' '):
-                test_line = line + (' ' if line else '') + word
-                bbox = font.getbbox(test_line)
-                w = bbox[2] - bbox[0]
-                if w > max_width and line:
-                    lines.append(line)
-                    line = word
-                else:
-                    line = test_line
-            lines.append(line)
-        return '\n'.join(lines)
-
-    # Auto-fit font
-    if font_size is None:
-        while True:
-            wrapped = get_wrapped(text, font, text_area_w)
-            bbox = draw.multiline_textbbox((0, 0), wrapped, font=font)
-            tw, th = bbox[2] - bbox[0], bbox[3] - bbox[1]
-            if (tw <= text_area_w and th <= text_area_h) or cur_font_size <= 10 * scale:
-                break
-            cur_font_size -= 2
-            if font_path:
-                font = ImageFont.truetype(font_path, cur_font_size)
-            else:
-                font = ImageFont.load_default()
-    else:
-        wrapped = get_wrapped(text, font, text_area_w)
-        bbox = draw.multiline_textbbox((0, 0), wrapped, font=font)
-        tw, th = bbox[2] - bbox[0], bbox[3] - bbox[1]
-
-    # Position
-    if text_position == 'top':
-        x = margin + (text_area_w - tw) // 2
-        y = margin + (text_area_h - th) // 2
-    elif text_position == 'bottom':
-        x = margin + (text_area_w - tw) // 2
-        y = H - text_area_h - margin + (text_area_h - th) // 2
-    elif text_position == 'left':
-        x = margin + (text_area_w - tw) // 2
-        y = margin + (text_area_h - th) // 2
-    elif text_position == 'right':
-        x = W - text_area_w - margin + (text_area_w - tw) // 2
-        y = margin + (text_area_h - th) // 2
-
-    draw.multiline_text((x, y), wrapped, font=font, fill=font_color, align='center')
-
-    # Resize back to original
-    img = img.resize((W_orig, H_orig), resample=Image.LANCZOS)
-    img.save(output_path)
-
-    return {
-        "image_path": image_path,
-        "image_with_text_path": output_path,
-        "text": text,
-        "text_position": text_position,
-        "margin_ratio": margin_ratio,
-        "text_ratio": text_ratio,
-        "font_path": font_path,
-        "font_color": font_color,
-        "font_size": cur_font_size // scale,
     }
 
 def get_random_background() -> str:

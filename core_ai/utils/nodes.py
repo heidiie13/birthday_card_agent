@@ -1,5 +1,7 @@
+import json
 import os
 import logging
+import re
 import uuid
 from datetime import datetime
 from dotenv import load_dotenv
@@ -14,6 +16,7 @@ from .state import AgentState
 load_dotenv()
 logger = logging.getLogger(__name__)
 
+    
 def _get_model() -> Runnable:
     try:
         llm = ChatOpenAI(
@@ -32,6 +35,14 @@ def _get_model() -> Runnable:
         return None
     return llm
 
+def extract_json(text):
+    match = re.search(r'\{.*\}', text, re.DOTALL)
+    if match:
+        try:
+            return json.loads(match.group())
+        except Exception:
+            return None
+    return None
 
 class ResponseLLM(BaseModel):
     greeting_text: str = Field(description="Greeting text in Vietnamese")
@@ -40,16 +51,16 @@ class ResponseLLM(BaseModel):
 def llm_node(state: AgentState) -> AgentState:
     now = datetime.now().strftime("%d/%m/%Y")
     llm = _get_model()
-    prompt = user_prompt_template.format(**state.model_dump())
-    sys_prompt = system_prompt.format(dominant_color = state.dominant_color, current_time = now)
+    user_prompt = user_prompt_template.format(**state.model_dump())
+    sys_prompt = system_prompt.format(current_time = now)
 
     try:
         messages = [
             SystemMessage(content=sys_prompt),
-            HumanMessage(content=prompt)
+            HumanMessage(content=user_prompt)
         ]
         parsed: ResponseLLM = llm.with_structured_output(ResponseLLM).invoke(messages)
-        logger.info(f"{parsed}")
+        logger.info(f"Response from LLM: {parsed}")
     except Exception as e:
         logger.error(f"Error creating messages: {e}")
         return state
@@ -64,7 +75,9 @@ def add_text_node(state: AgentState) -> AgentState:
     output_path = f"static/merged/{uuid.uuid4().hex}.png"
 
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
-    font_path = state.font_path or get_random_font()
+    font_path = get_random_font()
+    
+    logger.info(f"Font path: {font_path}")
     try:
         img = add_text_to_image(
             image_path=image_path,
@@ -111,18 +124,17 @@ def merge_node(state: AgentState) -> AgentState:
     greeting_words = len(state.greeting_text.split()) if state.greeting_text else 0
 
     # Set merge_foreground_ratio based on aspect ratio and greeting length
-    if greeting_words < 20:
+    if greeting_words < 30:
         state.merge_foreground_ratio = 2/3
-    elif greeting_words < 40:
+    elif greeting_words < 50:
         state.merge_foreground_ratio = 1/2
-    elif greeting_words < 70:
-        state.merge_foreground_ratio = 1/3
     else:
         state.merge_foreground_ratio = 1/3
         state.font_size = 60
+        
+    state.merge_foreground_ratio = 1 / 2 if state.aspect_ratio == 16 / 9 else state.merge_foreground_ratio
     state.text_ratio = 1 - state.merge_foreground_ratio
 
-    state.merge_foreground_ratio = 1 / 2 if state.aspect_ratio == 16 / 9 else state.merge_foreground_ratio
 
     # Perform merge
     output_path = f"static/merged/{uuid.uuid4().hex}.png"

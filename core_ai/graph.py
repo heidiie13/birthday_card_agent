@@ -33,17 +33,17 @@ graph = build_birthday_card_graph()
 if __name__=="__main__":
     graph = build_birthday_card_graph() 
     
-    # from PIL import Image
+    from PIL import Image
 
-    # import matplotlib.pyplot as plt
-    # import io
+    import matplotlib.pyplot as plt
+    import io
     
-    # mermaid_png = graph.get_graph().draw_mermaid_png()
+    mermaid_png = graph.get_graph().draw_mermaid_png()
     
-    # img = Image.open(io.BytesIO(mermaid_png))
-    # plt.imshow(img)
-    # plt.axis('off')
-    # plt.show()
+    img = Image.open(io.BytesIO(mermaid_png))
+    plt.imshow(img)
+    plt.axis('off')
+    plt.show()
     
     test_input = {
         "full_name": "Nguyễn Văn A",
@@ -52,7 +52,7 @@ if __name__=="__main__":
         "greeting_text_instructions": "lời chúc 10 từ",
         "background_path": "static/backgrounds/back_6.jpeg",
         "foreground_path": "static/foregrounds/fore_2.webp",
-        "merged_image_path": r"E:\genAI\birthday_card_agent\1.jpg",
+        "merged_image_path": "1.jpg",
     }
     
     result = graph.invoke(test_input)

@@ -142,8 +142,6 @@ def main():
                     "merge_foreground_ratio": selected_template["merge_foreground_ratio"],
                 })
 
-            import json
-            print(json.dumps(payload, indent=2, default=str))
             with st.status("Đang tạo thiệp, vui lòng chờ...", expanded=True):
                 try:
                     resp = requests.post(f"{API_URL}/generate-card", json=payload)

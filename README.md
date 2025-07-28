@@ -12,7 +12,7 @@ pip install -r requirements.txt
 
 3. Run backend:
 ```sh
-uvicorn api.main:app --<your-port>
+uvicorn api.main:app --port <your-port>
 ```
 
 4. Run frontend:

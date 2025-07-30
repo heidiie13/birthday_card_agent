@@ -4,6 +4,7 @@ from pilmoji.source import GoogleEmojiSource
 from collections import Counter
 import os
 import random
+import io
 
 def get_dominant_color(image_path: str, resize=50) -> str:
     if not os.path.exists(image_path):
@@ -437,3 +438,75 @@ def get_current_time() -> str:
     """
     from datetime import datetime
     return datetime.now().strftime("%d/%m/%Y")
+
+
+def remove_background_and_crop(input_path: str, output_path: str) -> str:
+    """
+    Remove background from uploaded image and crop to the actual bounding box.
+    
+    Args:
+        input_path (str): Path to the input image
+        output_path (str): Path to save the processed image
+        
+    Returns:
+        str: Path to the processed image
+    """
+    
+    try:
+        from rembg import new_session, remove
+        from PIL import Image
+        import numpy as np
+        
+        # Load the input image
+        with open(input_path, 'rb') as f:
+            input_data = f.read()
+        
+        # Create a new session for background removal
+        session = new_session('u2net')  # u2net model for general purpose
+        
+        # Remove background
+        output_data = remove(input_data, session=session)
+        
+        # Convert to PIL Image
+        img = Image.open(io.BytesIO(output_data)).convert('RGBA')
+        
+        # Get bounding box of non-transparent pixels
+        bbox = img.getbbox()
+        
+        if bbox:
+            # Crop to bounding box with some padding
+            padding = 20  # Add 20 pixels padding
+            x1, y1, x2, y2 = bbox
+            
+            # Add padding but ensure it doesn't exceed image boundaries
+            x1 = max(0, x1 - padding)
+            y1 = max(0, y1 - padding)
+            x2 = min(img.width, x2 + padding)
+            y2 = min(img.height, y2 + padding)
+            
+            # Crop the image
+            cropped_img = img.crop((x1, y1, x2, y2))
+        else:
+            # If no bounding box found, use original image
+            cropped_img = img
+        
+        # Ensure the directory exists
+        os.makedirs(os.path.dirname(output_path), exist_ok=True)
+        
+        # Save the processed image
+        cropped_img.save(output_path, 'PNG')
+        
+        return output_path
+        
+    except ImportError as e:
+        # If rembg is not available, just copy the original file
+        import shutil
+        os.makedirs(os.path.dirname(output_path), exist_ok=True)
+        shutil.copy2(input_path, output_path)
+        return output_path
+    except Exception as e:
+        # If any error occurs, fall back to copying the original
+        import shutil
+        os.makedirs(os.path.dirname(output_path), exist_ok=True)
+        shutil.copy2(input_path, output_path)
+        return output_path

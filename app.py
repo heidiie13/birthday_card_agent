@@ -6,17 +6,30 @@ API_URL = "http://localhost:8000"
 
 st.set_page_config(page_title="Birthday Card Generator", layout="wide")
 
-def fetch_templates(aspect_ratio_val) -> List[Dict]:
+def fetch_templates() -> List[Dict]:
     try:
-        resp = requests.get(f"{API_URL}/templates", params={"n": 8, "merge_aspect_ratio": aspect_ratio_val})
+        resp = requests.get(f"{API_URL}/templates", params={"n": 8, "merge_aspect_ratio": 3/4})
         resp.raise_for_status()
         return resp.json()
     except Exception as e:
         st.error(f"Lỗi khi lấy mẫu: {e}")
         return []
 
+def fetch_backgrounds(n=8) -> List[Dict]:
+    try:
+        resp = requests.get(f"{API_URL}/backgrounds", params={"n": n})
+        resp.raise_for_status()
+        return resp.json()
+    except Exception as e:
+        st.error(f"Lỗi khi lấy background: {e}")
+        return []
+
 def main():
-    st.title("🎂 Tạo Thiệp Sinh Nhật")
+    # Căn giữa tiêu đề và đổi màu sky blue
+    st.markdown(
+        "<h1 style='text-align: center; color: #87CEEB;'>🎂 Tạo Thiệp Sinh Nhật</h1>", 
+        unsafe_allow_html=True
+    )
     
     # Tạo layout 3 cột: form (sát trái), mẫu (giữa), kết quả (phải)
     info_col, template_col, result_col = st.columns([0.6, 1.4, 1])
@@ -24,14 +37,8 @@ def main():
     with info_col:
         st.subheader("Thông tin thiệp")
         
-        # Form điền thông tin
-        aspect_ratio_label = st.selectbox(
-            "Tỉ lệ ảnh (Rộng:Cao)",
-            ["1:1", "3:4", "4:3", "9:16", "16:9"],
-            index=1,
-        )
-        aspect_ratio_map = {"1:1": 1.0, "3:4": 3/4, "4:3": 4/3, "9:16": 9/16, "16:9": 16/9}
-        aspect_ratio_val = aspect_ratio_map[aspect_ratio_label]
+        # Sử dụng tỉ lệ cố định 3:4
+        aspect_ratio_val = 3/4
 
         mode = st.radio(
             "Chọn cách lấy mẫu:",
@@ -42,16 +49,28 @@ def main():
         # Nút và controls tương ứng với mode
         uploaded_foreground = None
         if mode == "Tải ảnh lên":
-            uploaded_foreground = st.file_uploader(label="Chọn mẫu", accept_multiple_files=False, type=["png", "jpg", "jpeg", "webp"])
+            uploaded_foreground = st.file_uploader(
+                label="Chọn mẫu", 
+                accept_multiple_files=False, 
+                type=["png", "jpg", "jpeg", "webp"],
+                help="Ảnh sẽ được tự động tách nền và cắt theo khung hình thật sự"
+            )
+            
+            # Nút làm mới background (giống như nút làm mới mẫu)
+            if uploaded_foreground:
+                if st.button("Làm mới background", key="refresh_bg_upload"):
+                    if "upload_backgrounds" in st.session_state:
+                        del st.session_state["upload_backgrounds"]
+                    if "selected_upload_background" in st.session_state:
+                        del st.session_state["selected_upload_background"]
         elif mode == "Chọn mẫu":
             if st.button("Làm mới mẫu"):
-                st.session_state["templates"] = fetch_templates(aspect_ratio_val)
-                st.session_state["templates_aspect_ratio"] = aspect_ratio_val
+                st.session_state["templates"] = fetch_templates()
                 if "selected_template" in st.session_state:
                     del st.session_state["selected_template"]
         elif mode == "Ngẫu nhiên":
             if st.button("Chọn mẫu ngẫu nhiên") or "random_template" not in st.session_state:
-                resp = requests.get(f"{API_URL}/templates", params={"n":1, "merge_aspect_ratio": aspect_ratio_val})
+                resp = requests.get(f"{API_URL}/templates", params={"n":1, "merge_aspect_ratio": 3/4})
                 resp.raise_for_status()
                 st.session_state["random_template"] = resp.json()[0]
 
@@ -68,10 +87,17 @@ def main():
     selected_template = None
     merged_preview_url = None
     templates = []
+    selected_background = st.session_state.get("selected_upload_background", None)
 
     if mode == "Tải ảnh lên" and uploaded_foreground:
         files = {"file": uploaded_foreground}
-        merge_resp = requests.post(f"{API_URL}/upload-template", files=files, params={"merge_aspect_ratio": aspect_ratio_val})
+        params = {"merge_aspect_ratio": 3/4}
+        
+        # Thêm background đã chọn vào params nếu có
+        if selected_background:
+            params["background_path"] = selected_background["path"]
+            
+        merge_resp = requests.post(f"{API_URL}/upload-template", files=files, params=params)
         merge_resp.raise_for_status()
         merge_data = merge_resp.json()
         merged_preview_url = merge_data.get("merged_image_path")
@@ -89,9 +115,8 @@ def main():
         }
 
     elif mode == "Chọn mẫu":
-        if "templates" not in st.session_state or st.session_state.get("templates_aspect_ratio") != aspect_ratio_val:
-            st.session_state["templates"] = fetch_templates(aspect_ratio_val)
-            st.session_state["templates_aspect_ratio"] = aspect_ratio_val
+        if "templates" not in st.session_state:
+            st.session_state["templates"] = fetch_templates()
         templates = st.session_state["templates"][:8] if st.session_state["templates"] else []
         selected_template = st.session_state.get("selected_template", None)
 
@@ -110,6 +135,9 @@ def main():
             if mode == "Tải ảnh lên" and not uploaded_foreground:
                 st.warning("Vui lòng upload ảnh foreground.")
                 st.stop()
+            elif mode == "Tải ảnh lên" and uploaded_foreground and not selected_background:
+                st.warning("Vui lòng chọn background.")
+                st.stop()
             elif mode == "Chọn mẫu" and "selected_template" not in st.session_state:
                 st.warning("Vui lòng chọn một mẫu.")
                 st.stop()
@@ -118,7 +146,7 @@ def main():
                 st.stop()
 
             payload = {
-                "aspect_ratio": aspect_ratio_val,
+                "aspect_ratio": 3/4,
                 "greeting_text_instructions": greeting_text_instructions or None,
             }
             if selected_template:
@@ -145,9 +173,35 @@ def main():
     # Hiển thị các mẫu ở cột giữa
     with template_col:
         # Hiển thị preview từ upload
-        if mode == "Tải ảnh lên" and merged_preview_url:
-            st.subheader("Xem trước mẫu")
-            st.image(merged_preview_url, caption="Ảnh ghép từ file upload", width=300)
+        if mode == "Tải ảnh lên":
+            if uploaded_foreground:
+                # Lấy danh sách background (4 thay vì 8)
+                if "upload_backgrounds" not in st.session_state:
+                    st.session_state["upload_backgrounds"] = fetch_backgrounds(4)
+                
+                upload_backgrounds = st.session_state["upload_backgrounds"]
+                
+                # Preview section - hiển thị trước danh sách background
+                if selected_background and merged_preview_url:
+                    st.subheader("Xem trước mẫu")
+                    st.image(merged_preview_url, caption="Ảnh ghép hoàn thành", width=300)
+                    st.divider()
+                
+                # Phần chọn background
+                st.subheader("Chọn background")
+                
+                if upload_backgrounds:
+                    # Grid backgrounds với 4 cột (hiển thị 4 backgrounds)
+                    bg_cols = st.columns(4)
+                    for idx, bg in enumerate(upload_backgrounds):
+                        col = bg_cols[idx % 4]
+                        with col:
+                            st.image(bg['url'], width=120, caption=f"BG {idx+1}")
+                            if st.button("Chọn", key=f"select_bg_upload_{idx}", use_container_width=True):
+                                st.session_state["selected_upload_background"] = bg
+                                st.rerun()
+            else:
+                st.info("Vui lòng upload foreground ở cột bên trái")
         
         # Hiển thị các mẫu để chọn
         elif mode == "Chọn mẫu" and templates:

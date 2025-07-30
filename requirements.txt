@@ -8,3 +8,8 @@ langchain-openai
 
 # ui
 streamlit
+
+# image processing
+rembg
+pillow
+onnxruntime

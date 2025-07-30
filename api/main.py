@@ -133,9 +133,6 @@ def generate_card(req: GenerateRequest, request: Request):
     """Generate a birthday card with text."""
 
     input_data = {
-        "full_name": req.full_name,
-        "gender": req.gender,
-        "birthday": req.birthday,
         "aspect_ratio": req.aspect_ratio,
         "greeting_text_instructions": req.greeting_text_instructions,
         "background_path": req.background_path,

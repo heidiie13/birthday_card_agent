@@ -1,4 +1,6 @@
 from PIL import ImageDraw, ImageFont, Image, ImageDraw, ImageFont
+from pilmoji import Pilmoji
+from pilmoji.source import GoogleEmojiSource
 from collections import Counter
 import os
 import random
@@ -365,10 +367,8 @@ def add_text_to_image(
         x = W - text_area_w - margin + (text_area_w - tw) // 2
         y = margin + (text_area_h - th) // 2
 
-    draw.multiline_text((x, y), wrapped, font=font, fill=font_color, align='center')
-
-    # Resize back to original
-    img = img.resize((W_orig, H_orig), resample=Image.LANCZOS)
+    with Pilmoji(img, source=GoogleEmojiSource()) as pilmoji:
+        pilmoji.text((x, y), wrapped, font=font, fill=font_color, align='center')
     img.save(output_path)
 
     return {
@@ -426,3 +426,14 @@ def get_random_font() -> str:
     if not files:
         raise FileNotFoundError("No font files found in static/fonts/")
     return os.path.join(fonts_dir, random.choice(files))
+
+
+def get_current_time() -> str:
+    """
+    Get current date and time in Vietnamese format for LLM to calculate age.
+    
+    Returns:
+        str: Current date in DD/MM/YYYY format
+    """
+    from datetime import datetime
+    return datetime.now().strftime("%d/%m/%Y")

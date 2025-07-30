@@ -46,10 +46,7 @@ if __name__=="__main__":
     plt.show()
     
     test_input = {
-        "full_name": "Nguyễn Văn A",
-        "gender": "Nam",
-        "birthday": "2000-01-01",
-        "greeting_text_instructions": "lời chúc 10 từ",
+        "greeting_text_instructions": "Thiệp chúc mừng sinh nhật cho bé gái tên Linh, 8 tuổi, thích màu hồng và Hello Kitty",
         "background_path": "static/backgrounds/back_6.jpeg",
         "foreground_path": "static/foregrounds/fore_2.webp",
         "merged_image_path": "1.jpg",

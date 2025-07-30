@@ -3,13 +3,12 @@ import os
 import logging
 import re
 import uuid
-from datetime import datetime
 from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
 from langchain_core.runnables import Runnable
 from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
 from pydantic import BaseModel, Field
-from .tools import merge_foreground_background, add_text_to_image, get_random_font, get_dominant_color
+from .tools import merge_foreground_background, add_text_to_image, get_random_font, get_dominant_color, get_current_time
 from .prompt import system_prompt, user_prompt_template
 from .state import AgentState
 
@@ -26,8 +25,8 @@ def _get_model() -> Runnable:
             temperature=0.7,
             default_headers={"App-Code": "fresher"},
             extra_body={
-                "service": "test_agent_app",
-                "chat_template_kwargs": {"enable_thinking": False}
+                "service": "test_agent_app"
+                # "chat_template_kwargs": {"enable_thinking": False}
             }
         )
     except Exception as e:
@@ -49,20 +48,65 @@ class ResponseLLM(BaseModel):
     font_color: str = Field(description="Font color in hex format, e.g., #FFFFFF")
 
 def llm_node(state: AgentState) -> AgentState:
-    now = datetime.now().strftime("%d/%m/%Y")
+    from langchain_core.tools import Tool
+    from langchain_core.messages import ToolMessage
+    
     llm = _get_model()
-    user_prompt = user_prompt_template.format(**state.model_dump())
-    sys_prompt = system_prompt.format(current_time = now)
+    
+    # Create tool for current time
+    current_time_tool = Tool(
+        name="get_current_time",
+        description="Get current date and time in DD/MM/YYYY format to calculate age",
+        func=get_current_time
+    )
+    
+    # Bind tool to LLM
+    llm_with_tools = llm.bind_tools([current_time_tool])
+    
+    # Ensure greeting_text_instructions is not None
+    state_dict = state.model_dump()
+    if state_dict.get('greeting_text_instructions') is None:
+        state_dict['greeting_text_instructions'] = "Tạo lời chúc sinh nhật vui vẻ, tích cực"
+    
+    user_prompt = user_prompt_template.format(**state_dict)
 
     try:
         messages = [
-            SystemMessage(content=sys_prompt),
+            SystemMessage(content=system_prompt),
             HumanMessage(content=user_prompt)
         ]
-        parsed: ResponseLLM = llm.with_structured_output(ResponseLLM).invoke(messages)
-        logger.info(f"Response from LLM: {parsed}")
+        
+        # First call - may include tool calls
+        response = llm_with_tools.invoke(messages)
+        logger.info(f"Initial LLM response: {response}")
+        
+        # Check if LLM wants to use tools
+        if hasattr(response, 'tool_calls') and response.tool_calls:
+            logger.info(f"Tool calls detected: {response.tool_calls}")
+            messages.append(response)
+            
+            # Execute tool calls
+            for tool_call in response.tool_calls:
+                if tool_call['name'] == 'get_current_time':
+                    current_time = get_current_time()
+                    logger.info(f"Current time from tool: {current_time}")
+                    tool_message = ToolMessage(
+                        content=current_time,
+                        tool_call_id=tool_call['id']
+                    )
+                    messages.append(tool_message)
+            
+            # Get final structured response
+            final_response = llm.with_structured_output(ResponseLLM).invoke(messages)
+            parsed = final_response
+        else:
+            # No tools needed, get structured output directly
+            logger.info("No tool calls, getting structured output directly")
+            parsed = llm.with_structured_output(ResponseLLM).invoke(messages)
+            
+        logger.info(f"Final parsed response: {parsed}")
     except Exception as e:
-        logger.error(f"Error creating messages: {e}")
+        logger.error(f"Error in LLM node: {e}")
         return state
     
     state.messages.append(AIMessage(content=parsed.model_dump_json()))
@@ -78,6 +122,12 @@ def add_text_node(state: AgentState) -> AgentState:
     font_path = get_random_font()
     
     logger.info(f"Font path: {font_path}")
+    
+    # Safety check for greeting_text
+    if not state.greeting_text:
+        logger.error("greeting_text is None or empty")
+        return state
+        
     try:
         img = add_text_to_image(
             image_path=image_path,

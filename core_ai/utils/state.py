@@ -6,10 +6,7 @@ class AgentState(BaseModel):
     # Conversation and feedback
     messages: List[AnyMessage] = []
 
-    # User info and style
-    full_name: str = "Nguyễn Văn A"
-    gender: str = "Nam"
-    birthday: str = "2000-01-01"
+    # User requirements
     greeting_text_instructions: Optional[str] = None
 
     # Image info

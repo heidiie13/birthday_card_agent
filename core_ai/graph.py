@@ -27,33 +27,3 @@ def build_birthday_card_graph() -> StateGraph:
 
     graph = graph_builder.compile()
     return graph
-
-graph = build_birthday_card_graph()
-
-if __name__=="__main__":
-    graph = build_birthday_card_graph() 
-    
-    from PIL import Image
-
-    import matplotlib.pyplot as plt
-    import io
-    
-    mermaid_png = graph.get_graph().draw_mermaid_png()
-    
-    img = Image.open(io.BytesIO(mermaid_png))
-    plt.imshow(img)
-    plt.axis('off')
-    plt.show()
-    
-    test_input = {
-        "full_name": "Nguyễn Văn A",
-        "gender": "Nam",
-        "birthday": "2000-01-01",
-        "greeting_text_instructions": "lời chúc 10 từ",
-        "background_path": "static/backgrounds/back_6.jpeg",
-        "foreground_path": "static/foregrounds/fore_2.webp",
-        "merged_image_path": "1.jpg",
-    }
-    
-    result = graph.invoke(test_input)
-    print(result)

@@ -1,9 +1,11 @@
+import json
+import os
+from collections import Counter
+import random
+from typing import Optional
 from PIL import ImageDraw, ImageFont, Image, ImageDraw, ImageFont
 from pilmoji import Pilmoji
 from pilmoji.source import GoogleEmojiSource
-from collections import Counter
-import os
-import random
 
 def get_dominant_color(image_path: str, resize=50) -> str:
     if not os.path.exists(image_path):
@@ -137,14 +139,17 @@ def merge_foreground_background(
 
 def add_text_to_image(
     image_path: str,
-    output_path: str,
     text: str,
+    output_path: str,
+    font_path: Optional[str] = None,
+    font_color: str = '#000000',
+    font_size: Optional[int] = None,
+    title: Optional[str] = None,
+    title_font_path: Optional[str] = None,
+    title_font_size: int = 140,
     text_position: str = 'bottom',
     margin_ratio: float = 0.05,
     text_ratio: float = 1/2,
-    font_path: str = None,
-    font_color: str = '#000000',
-    font_size: int = None
 ) -> dict:
     """
     Add text to a specified area of the image (not covered by foreground), with margin and adjustable area ratio.
@@ -159,12 +164,15 @@ def add_text_to_image(
         image (Image.Image): The merged image (PIL Image).
         output_path (str): Path to save the image with text.
         text (str): Text to add.
-        text_position (str): One of 'top', 'bottom', 'left', 'right'.
-        margin_ratio (float): Margin as a fraction of image size (default 0.05).
-        text_ratio (float): Fraction of background occupied by text in the chosen direction (default 1-foreground_ratio).
         font_path (str): Path to .ttf font file (optional).
         font_color (str): Text color in hex (default black).
         font_size (int): Font size (optional, auto-fit if None).
+        title (str): Title text (optional).
+        title_font_path (str): Path to .ttf font file (optional).
+        title_font_size (int): Title font size (optional, auto-fit if None).
+        text_position (str): One of 'top', 'bottom', 'left', 'right'.
+        margin_ratio (float): Margin as a fraction of image size (default 0.05).
+        text_ratio (float): Fraction of background occupied by text in the chosen direction (default 1-foreground_ratio).
 
     Returns:
         dict: Details of the image with text including paths and parameters.
@@ -176,9 +184,7 @@ def add_text_to_image(
     draw = ImageDraw.Draw(img)
     W, H = img.size
     margin = int(min(W, H) * margin_ratio)
-    # Always allow 4 positions: top, bottom, left, right
-    if text_ratio is None:
-        text_ratio = 1 - (2/3)  # default: 1/3
+
     if text_ratio > 1:
         text_ratio = 1.0
     if text_position in ['top', 'bottom']:
@@ -189,7 +195,24 @@ def add_text_to_image(
         text_area_h = H - 2 * margin
     else:
         raise ValueError("position must be one of 'top', 'bottom', 'left', 'right'")
-    # Font size: try to fit text in text_area_h, or use provided font_size
+
+    # Title
+    if title:
+        if title_font_size is None:
+            title_font_size = text_area_h // 4
+        if title_font_path:
+            title_font = ImageFont.truetype(title_font_path, title_font_size)
+        else:
+            title_font = ImageFont.load_default()
+        wrapped_title = _get_wrapped(title, title_font, text_area_w)
+        title_bbox = draw.multiline_textbbox((0, 0), wrapped_title, font=title_font)
+        title_w, title_h = title_bbox[2] - title_bbox[0], title_bbox[3] - title_bbox[1]
+    else:
+        title_h = 0
+        wrapped_title = ''
+        title_font = None
+
+    # Text
     if font_size is None:
         cur_font_size = text_area_h // 3
     else:
@@ -198,104 +221,98 @@ def add_text_to_image(
         font = ImageFont.truetype(font_path, cur_font_size)
     else:
         font = ImageFont.load_default()
-    # Wrap text to fit text_area_w
-    def get_wrapped(text, font, max_width):
-        lines = []
-        for paragraph in text.split('\n'):
-            if not paragraph:
-                lines.append('')
-                continue
-            line = ''
-            for word in paragraph.split(' '):
-                test_line = line + (' ' if line else '') + word
-                bbox = font.getbbox(test_line)
-                w = bbox[2] - bbox[0]
-                if w > max_width and line:
-                    lines.append(line)
-                    line = word
-                else:
-                    line = test_line
-            lines.append(line)
-        return '\n'.join(lines)
 
-    # Adjust font size to fit if not provided
-    if font_size is None:
-        while True:
-            wrapped = get_wrapped(text, font, text_area_w)
-            bbox = draw.multiline_textbbox((0, 0), wrapped, font=font)
-            tw, th = bbox[2] - bbox[0], bbox[3] - bbox[1]
-            if (tw <= text_area_w and th <= text_area_h) or cur_font_size <= 10:
-                break
-            cur_font_size -= 2
-            if font_path:
-                font = ImageFont.truetype(font_path, cur_font_size)
-            else:
-                font = ImageFont.load_default()
-    else:
-        wrapped = get_wrapped(text, font, text_area_w)
-        bbox = draw.multiline_textbbox((0, 0), wrapped, font=font)
-        tw, th = bbox[2] - bbox[0], bbox[3] - bbox[1]
+    while True:
+        wrapped_text = _get_wrapped(text, font, text_area_w)
+        text_bbox = draw.multiline_textbbox((0, 0), wrapped_text, font=font)
+        text_w, text_h = text_bbox[2] - text_bbox[0], text_bbox[3] - text_bbox[1]
+        total_h = title_h + text_h
+        if (text_w <= text_area_w and total_h <= text_area_h) or cur_font_size <= 10:
+            break
+        cur_font_size -= 2
+        if font_path:
+            font = ImageFont.truetype(font_path, cur_font_size)
+        else:
+            font = ImageFont.load_default()
+
     # Position
+    max_w = max(text_w, title_w if title else 0)
     if text_position == 'top':
-        x = margin + (text_area_w - tw) // 2
-        y = margin + (text_area_h - th) // 2
+        x = margin + (text_area_w - max_w) // 2
+        y = margin + (text_area_h - (title_h + text_h)) // 2
     elif text_position == 'bottom':
-        x = margin + (text_area_w - tw) // 2
-        y = H - text_area_h - margin + (text_area_h - th) // 2
+        x = margin + (text_area_w - max_w) // 2
+        y = H - text_area_h - margin + (text_area_h - (title_h + text_h)) // 2
     elif text_position == 'left':
-        x = margin + (text_area_w - tw) // 2
-        y = margin + (text_area_h - th) // 2
+        x = margin + (text_area_w - max_w) // 2
+        y = margin + (text_area_h - (title_h + text_h)) // 2
     elif text_position == 'right':
-        x = W - text_area_w - margin + (text_area_w - tw) // 2
-        y = margin + (text_area_h - th) // 2
-        
-    # Draw text
+        x = W - text_area_w - margin + (text_area_w - max_w) // 2
+        y = margin + (text_area_h - (title_h + text_h)) // 2
+
     with Pilmoji(img, source=GoogleEmojiSource()) as pilmoji:
-        pilmoji.text((x, y), wrapped, font=font, fill=font_color, align='center')
-    
+        if title:
+            pilmoji.text((x, y), wrapped_title, font=title_font, fill=font_color, align='center')
+            y += title_h + 70
+        pilmoji.text((x, y), wrapped_text, font=font, fill=font_color, align='center', spacing=12)
+
     img.save(output_path)
     return {
         "image_path": image_path,
         "image_with_text_path": output_path,
         "text": text,
+        "title": title,
         "text_position": text_position,
         "margin_ratio": margin_ratio,
         "text_ratio": text_ratio,
         "font_path": font_path,
         "font_color": font_color,
         "font_size": cur_font_size,
+        "title_font_path": title_font_path,
+        "title_font_size": title_font_size,
     }
 
-def get_random_background() -> str:
+def _get_wrapped(text, font, max_width):
     """
-    Randomly select a background image from static/backgrounds.
+    Wrap text to fit within a given width using a given font.
+    """
+    lines = []
+    for paragraph in text.split('\n'):
+        if not paragraph:
+            lines.append('')
+            continue
+        line = ''
+        for word in paragraph.split(' '):
+            test_line = line + (' ' if line else '') + word
+            bbox = font.getbbox(test_line)
+            w = bbox[2] - bbox[0]
+            if w > max_width and line:
+                lines.append(line)
+                line = word
+            else:
+                line = test_line
+        lines.append(line)
+    return '\n'.join(lines)
 
+def get_templates_by_style(card_style: str):
+    """
+    Get a list of image info dictionaries by style from the template_card_info.json file.
+    Args:
+        card_style (str): The style name (e.g., 'birthday')
     Returns:
-        str: The file path to the randomly selected background image.
+        List[dict]: A list of image info dictionaries matching the style
     """
-    backgrounds_dir = os.path.join('static', 'backgrounds')
-    files = [f for f in os.listdir(backgrounds_dir)]
-    if not files:
-        raise FileNotFoundError('No background images found in static/backgrounds/')
-    selected = random.choice(files)
-    return os.path.join(backgrounds_dir, selected)
 
-
-def get_random_foreground() -> str:
-    """
-    Randomly select a foreground image from static/foregrounds.
-
-    Returns:
-        str: The file path to the randomly selected foreground image.
-    """
-    foregrounds_dir = os.path.join('static', 'foregrounds')
-    files = [f for f in os.listdir(foregrounds_dir)]
-    if not files:
-        raise FileNotFoundError('No foreground images found in static/foregrounds/')
-    selected = random.choice(files)
-    return os.path.join(foregrounds_dir, selected)
-
-
+    json_path = 'static/images/template_card_info.json'
+    if not os.path.exists(json_path):
+        return []
+    with open(json_path, 'r', encoding='utf-8') as f:
+        try:
+            data = json.load(f)
+        except Exception:
+            return []
+    return [item for item in data if item.get('card_style') == card_style]
+    
 def get_random_font() -> str:
     """
     Randomly select a font file from static/fonts.

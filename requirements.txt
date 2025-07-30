@@ -2,9 +2,9 @@
 fastapi[standard]==0.116.1
 
 # core agent
-langgraph=0.5.4
-langchain-core=0.3.72
-langchain-openai=0.3.28
+langgraph==0.5.4
+langchain-core==0.3.72
+langchain-openai==0.3.28
 
 # ui
 streamlit==1.47.1

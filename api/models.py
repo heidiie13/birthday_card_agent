@@ -1,5 +1,10 @@
 from typing import Optional
+from enum import Enum
 from pydantic import BaseModel
+
+class CardType(str, Enum):
+    birthday = "birthday"
+    graduation = "graduation"
 
 class GenerateRequest(BaseModel):
     greeting_text_instructions: str

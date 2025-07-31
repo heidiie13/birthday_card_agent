@@ -7,7 +7,7 @@ from fastapi import FastAPI, Request, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
-from api.models import BackgroundResponse, TemplateResponse, GenerateRequest, GenerateResponse
+from api.models import BackgroundResponse, TemplateResponse, GenerateRequest, GenerateResponse, CardType
 from api.services import get_random_template_service, get_templates_service, get_backgrounds_service, generate_card_service, save_upload_file
 
 
@@ -27,20 +27,22 @@ os.makedirs(CARDS_DIR, exist_ok=True)
 
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
-@app.get("/templates/{type}", response_model=List[TemplateResponse])
+
+@app.get("/templates/{card_type}", response_model=List[TemplateResponse])
 def get_templates(
-    type: str,
+    card_type: CardType,
     request: Request,
     page: int = Query(1, ge=1, description="Page number, starting from 1"),
     page_size: int = Query(10, ge=1, le=100, description="Number of items per page")
 ):
     """Get template cards by type with pagination."""
-    return get_templates_service(type, request, page, page_size)
+    return get_templates_service(card_type.value, request, page, page_size)
 
-@app.get("/random-template/{type}", response_model=TemplateResponse)
-def get_random_template(type: str, request: Request):
+
+@app.get("/random-template/{card_type}", response_model=TemplateResponse)
+def get_random_template(card_type: CardType, request: Request):
     """Get a random template card by type."""
-    return get_random_template_service(type, request)
+    return get_random_template_service(card_type.value, request)
 
 @app.get("/backgrounds", response_model=List[BackgroundResponse])
 def get_backgrounds(req: Request, page: int = Query(1, ge=1, description="Page number, starting from 1"),

@@ -440,70 +440,134 @@ def get_current_time() -> str:
     return datetime.now().strftime("%d/%m/%Y")
 
 
-def remove_background_and_crop(input_path: str, output_path: str) -> str:
+from PIL import Image, ImageFilter
+
+def create_alpha_mask_with_blurred_edges(fg_size, blur_region, blur_radius, blur_top=True, blur_bottom=True, blur_left=True, blur_right=True):
     """
-    Remove background from uploaded image and crop to the actual bounding box.
+    Tạo alpha mask với các cạnh làm mờ bằng Gaussian blur.
+    Args:
+        fg_size: Tuple (width, height) của ảnh
+        blur_region: Kích thước vùng blur ở mỗi cạnh (pixels)
+        blur_radius: Độ mạnh của Gaussian blur
+        blur_top, blur_bottom, blur_left, blur_right: Có áp dụng blur cho từng cạnh không
+    Returns:
+        PIL.Image: Alpha mask đã được blur
+    """
+    width, height = fg_size
+    
+    # Tạo mask mặc định: toàn bộ ảnh opaque (255)
+    alpha = Image.new('L', (width, height), 255)
+    data = alpha.load()  # Truy cập từng pixel
+    
+    for y in range(height):
+        for x in range(width):
+            min_alpha = 255  # Giá trị alpha tối đa
+            
+            # Xử lý cạnh trên
+            if blur_top and y < blur_region:
+                ratio = y / blur_region
+                current = int(ratio * 255)
+                if current < min_alpha:
+                    min_alpha = current
+            
+            # Xử lý cạnh dưới
+            if blur_bottom and y >= height - blur_region:
+                ratio = (height - y - 1) / blur_region
+                current = int(ratio * 255)
+                if current < min_alpha:
+                    min_alpha = current
+            
+            # Xử lý cạnh trái
+            if blur_left and x < blur_region:
+                ratio = x / blur_region
+                current = int(ratio * 255)
+                if current < min_alpha:
+                    min_alpha = current
+            
+            # Xử lý cạnh phải
+            if blur_right and x >= width - blur_region:
+                ratio = (width - x - 1) / blur_region
+                current = int(ratio * 255)
+                if current < min_alpha:
+                    min_alpha = current
+            
+            # Xử lý các góc (đảm bảo chuyển tiếp trơn tru)
+            if blur_top and blur_left and x < blur_region and y < blur_region:
+                corner_ratio = max(x / blur_region, y / blur_region)
+                current = int(corner_ratio * 255)
+                if current < min_alpha:
+                    min_alpha = current
+            
+            if blur_top and blur_right and x >= width - blur_region and y < blur_region:
+                corner_ratio = max((width - x - 1) / blur_region, y / blur_region)
+                current = int(corner_ratio * 255)
+                if current < min_alpha:
+                    min_alpha = current
+            
+            if blur_bottom and blur_left and x < blur_region and y >= height - blur_region:
+                corner_ratio = max(x / blur_region, (height - y - 1) / blur_region)
+                current = int(corner_ratio * 255)
+                if current < min_alpha:
+                    min_alpha = current
+            
+            if blur_bottom and blur_right and x >= width - blur_region and y >= height - blur_region:
+                corner_ratio = max((width - x - 1) / blur_region, (height - y - 1) / blur_region)
+                current = int(corner_ratio * 255)
+                if current < min_alpha:
+                    min_alpha = current
+            
+            # Cập nhật giá trị alpha nhỏ nhất (mờ nhất) cho pixel
+            data[x, y] = min_alpha
+    
+    # Áp dụng Gaussian blur mạnh hơn
+    blurred = alpha.filter(ImageFilter.GaussianBlur(radius=blur_radius))
+    
+    return blurred
+
+
+def apply_gaussian_blur_edges(input_path: str, output_path: str, blur_region, blur_radius, blur_top=True, blur_bottom=True, blur_left=True, blur_right=True) -> str:
+    """
+    Áp dụng Gaussian blur viền cho ảnh đã upload.
     
     Args:
         input_path (str): Path to the input image
         output_path (str): Path to save the processed image
+        blur_region (int): Kích thước vùng blur ở mỗi cạnh (pixels)
+        blur_radius (float): Độ mạnh của Gaussian blur
+        blur_top, blur_bottom, blur_left, blur_right (bool): Có áp dụng blur cho từng cạnh không
         
     Returns:
         str: Path to the processed image
     """
     
     try:
-        from rembg import new_session, remove
         from PIL import Image
-        import numpy as np
         
         # Load the input image
-        with open(input_path, 'rb') as f:
-            input_data = f.read()
+        img = Image.open(input_path).convert('RGBA')
         
-        # Create a new session for background removal
-        session = new_session('u2net')  # u2net model for general purpose
+        # Tạo alpha mask với blurred edges
+        alpha_mask = create_alpha_mask_with_blurred_edges(
+            img.size, 
+            blur_region=blur_region,
+            blur_radius=blur_radius,
+            blur_top=blur_top,
+            blur_bottom=blur_bottom,
+            blur_left=blur_left,
+            blur_right=blur_right
+        )
         
-        # Remove background
-        output_data = remove(input_data, session=session)
-        
-        # Convert to PIL Image
-        img = Image.open(io.BytesIO(output_data)).convert('RGBA')
-        
-        # Get bounding box of non-transparent pixels
-        bbox = img.getbbox()
-        
-        if bbox:
-            # Crop to bounding box with some padding
-            padding = 20  # Add 20 pixels padding
-            x1, y1, x2, y2 = bbox
-            
-            # Add padding but ensure it doesn't exceed image boundaries
-            x1 = max(0, x1 - padding)
-            y1 = max(0, y1 - padding)
-            x2 = min(img.width, x2 + padding)
-            y2 = min(img.height, y2 + padding)
-            
-            # Crop the image
-            cropped_img = img.crop((x1, y1, x2, y2))
-        else:
-            # If no bounding box found, use original image
-            cropped_img = img
+        # Áp dụng alpha mask lên ảnh
+        img.putalpha(alpha_mask)
         
         # Ensure the directory exists
         os.makedirs(os.path.dirname(output_path), exist_ok=True)
         
         # Save the processed image
-        cropped_img.save(output_path, 'PNG')
+        img.save(output_path, 'PNG')
         
         return output_path
         
-    except ImportError as e:
-        # If rembg is not available, just copy the original file
-        import shutil
-        os.makedirs(os.path.dirname(output_path), exist_ok=True)
-        shutil.copy2(input_path, output_path)
-        return output_path
     except Exception as e:
         # If any error occurs, fall back to copying the original
         import shutil

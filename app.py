@@ -53,7 +53,7 @@ def main():
                 label="Chọn mẫu", 
                 accept_multiple_files=False, 
                 type=["png", "jpg", "jpeg", "webp"],
-                help="Ảnh sẽ được tự động tách nền và cắt theo khung hình thật sự"
+                help="Ảnh sẽ được tự động làm mờ viền để hòa tan với background"
             )
             
             # Nút làm mới background (giống như nút làm mới mẫu)

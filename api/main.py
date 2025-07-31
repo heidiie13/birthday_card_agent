@@ -13,11 +13,25 @@ from fastapi.staticfiles import StaticFiles
 from core_ai.graph import build_birthday_card_graph
 from api.models import MergedImageResponse, GenerateRequest, GenerateResponse, MergePosition
 
+import os, sys
+from typing import List
+sys.path.append(os.path.dirname(__file__))
+
+from fastapi import UploadFile, File
+from fastapi import FastAPI, Request, Query
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+
+from api.models import BackgroundResponse, TemplateResponse, GenerateRequest, GenerateResponse
+from api.services import get_random_template_service, get_templates_service, get_backgrounds_service, generate_card_service, save_upload_file
+
+
+
 from core_ai.utils.tools import (
     get_random_background,
     get_random_foreground,
     merge_foreground_background,
-    remove_background_and_crop,
+    apply_gaussian_blur_edges,
 )
 
 app = FastAPI(title="Birthday Card API")
@@ -208,27 +222,31 @@ async def upload_template(request = Request,
     with open(original_path, "wb") as f:
         f.write(await file.read())
     
-    # Process uploaded image: remove background and crop
+    # Process uploaded image: apply gaussian blur edges
     processed_name = f"{uuid.uuid4().hex}_processed.png"
     fg_path = os.path.join(fg_dir, processed_name)
-    
+
     try:
-        # Apply background removal and cropping
-        print(f"🔄 Processing image: {original_path} -> {fg_path}")
-        processed_path = remove_background_and_crop(original_path, fg_path)
-        print(f"✅ Background removal completed: {processed_path}")
+        # Apply gaussian blur to edges
+        processed_path = apply_gaussian_blur_edges(
+            original_path, 
+            fg_path,
+            blur_region=150,
+            blur_radius=10,
+            blur_top=True,
+            blur_bottom=True,
+            blur_left=True,
+            blur_right=True
+        )
         
         # Verify the processed file exists and has content
         if os.path.exists(processed_path) and os.path.getsize(processed_path) > 0:
-            print(f"📁 Processed file size: {os.path.getsize(processed_path)} bytes")
             fg_path = processed_path
         else:
-            print("❌ Processed file is empty or doesn't exist, using original")
             import shutil
             shutil.copy2(original_path, fg_path)
             
     except Exception as e:
-        print(f"❌ Error during background removal: {e}")
         # If processing fails, use original file
         import shutil
         shutil.copy2(original_path, fg_path)
@@ -236,10 +254,8 @@ async def upload_template(request = Request,
     # Use selected background or get random one
     if background_path and os.path.exists(background_path):
         bg_path = background_path
-        print(f"🎨 Using selected background: {bg_path}")
     else:
         bg_path = get_random_background()
-        print(f"🎲 Using random background: {bg_path}")
 
     out_name = f"{uuid.uuid4().hex}.png"
     merged_path = os.path.join(MERGED_DIR, out_name)

@@ -24,7 +24,9 @@ def merge_foreground_background(
     merge_position: str = 'top',
     margin_ratio: float = 0.05,
     aspect_ratio: float = 3/4,
-    foreground_ratio: float = 1/2
+    foreground_ratio: float = 1/2,
+    logo_path: str = "static/images/Logo-MISA.webp",
+    logo_scale: float = 0.12,
 ) -> dict:
     """
     Merge a foreground image onto a background image with a specified aspect ratio (width/height, float) and adjustable foreground area.
@@ -43,7 +45,8 @@ def merge_foreground_background(
         margin_ratio (float): Margin as a fraction of the smallest image dimension (default 0.05).
         aspect_ratio (float): Aspect ratio (width/height) for cropping background, e.g. 1.0 (1:1), 0.75 (3:4), 1.33 (4:3), 0.5625 (9:16), 1.77 (16:9). 1.33 (4:3).
         foreground_ratio (float): Fraction of background occupied by foreground in the chosen direction (default 1/2).
-
+        logo_path (str): Path to logo image to add in the bottom right corner (default "static/images/Logo-MISA.webp").
+        logo_scale (float): Scale of the logo relative to the image width (default 0.12).
     Returns:
         dict: Details of the merged image including paths and parameters.
     """
@@ -113,16 +116,33 @@ def merge_foreground_background(
 
     result = bg.copy()
     result.paste(fg, (x, y), fg)
-    
+
     standard_height = 1600  # Standard height for resizing
     standard_width = int(standard_height * aspect_ratio)
+
     result = result.resize((standard_width, standard_height), Image.LANCZOS)
-    
+
+    if logo_path and os.path.exists(logo_path):
+        logo = Image.open(logo_path).convert('RGBA')
+        res_w, res_h = result.size
+        # Scale logo to a fraction of width (logo_scale)
+        logo_max_w = int(res_w * logo_scale)
+        logo_ratio = logo.width / logo.height
+        logo_w = logo_max_w
+        logo_h = int(logo_w / logo_ratio)
+        logo = logo.resize((logo_w, logo_h), Image.LANCZOS)
+        # Position: bottom right, with margin
+        logo_margin = int(min(res_w, res_h) * margin_ratio)
+        logo_x = res_w - logo_w - logo_margin
+        logo_y = res_h - logo_h - logo_margin
+        result.paste(logo, (logo_x, logo_y), logo)
+        logo.close()
+
     if result.mode == "RGBA":
         result = result.convert("RGB")
-    
+
     result.save(output_path)
-    
+
     bg.close()
     fg.close()
     result.close()

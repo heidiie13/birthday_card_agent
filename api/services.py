@@ -6,12 +6,12 @@ from fastapi import HTTPException, Request, UploadFile
 from api.models import BackgroundResponse, TemplateResponse, GenerateRequest, GenerateResponse
 
 from core_ai.utils.tools import get_templates_by_type, get_random_template_by_type
-from core_ai.graph import build_birthday_card_graph
+from core_ai.graph import build_card_gen_graph
 
 STATIC_DIR = "static"
 CARDS_DIR = os.path.join(STATIC_DIR, "images", "cards")
 
-graph = build_birthday_card_graph()
+graph = build_card_gen_graph()
 
 def get_templates_service(type: str, request: Request, page: int = 1, page_size: int = 10) -> List[TemplateResponse]:
     templates = get_templates_by_type(type)

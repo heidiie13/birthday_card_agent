@@ -21,7 +21,7 @@ class State(BaseModel):
     title: Optional[str] = None
     font_color: Optional[str] = None
     font_path: Optional[str] = None
-    font_size: int = 75
+    font_size: int = 70
     title_font_path: Optional[str] = None
     title_font_size: int = 100
 

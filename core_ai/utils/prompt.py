@@ -28,7 +28,7 @@ Ví dụ: "Happy Birthday to <tên người nhận>!", "Happy Graduation to <tê
 Các thể loại thiệp hợp lệ bao gồm: birthday, graduation.
 
 **OUTPUT**: **Bắt buộc** trả về đúng một JSON thuần túy, không markdown, không chú thích, không giải thích, không ký tự thừa, có định dạng chính xác như sau:
-{{"title": string, "greeting_text": string, "card_type": string, "font_color": string}}
+{{"title": string, "greeting_text": string, "card_type": string}}
 """
 
 user_prompt_template = """

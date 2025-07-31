@@ -140,13 +140,13 @@ def merge_node(state: State) -> State:
     greeting_words = len(state.greeting_text.split()) if state.greeting_text else 0
 
     # Set merge_foreground_ratio based on aspect ratio and greeting length
-    if greeting_words < 45:
+    if greeting_words < 40:
         state.merge_foreground_ratio = 1/2
     else:
         state.merge_foreground_ratio = 1/3
         state.font_size = 65
 
-    state.text_ratio = 1 - state.merge_foreground_ratio
+    state.text_ratio = 1 - state.merge_foreground_ratio + 0.1
 
     # Perform merge
     output_path = f"static/images/cards/{uuid.uuid4().hex}.png"

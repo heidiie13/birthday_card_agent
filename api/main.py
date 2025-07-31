@@ -6,32 +6,20 @@ from PIL import Image
 sys.path.append(os.path.dirname(__file__))
 
 import uuid
-from fastapi import FastAPI, HTTPException, UploadFile, Request
+from fastapi import FastAPI, HTTPException, UploadFile, Request, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.params import File
 from fastapi.staticfiles import StaticFiles
 from core_ai.graph import build_birthday_card_graph
-from api.models import MergedImageResponse, GenerateRequest, GenerateResponse, MergePosition
-
-import os, sys
-from typing import List
-sys.path.append(os.path.dirname(__file__))
-
-from fastapi import UploadFile, File
-from fastapi import FastAPI, Request, Query
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
-
-from api.models import BackgroundResponse, TemplateResponse, GenerateRequest, GenerateResponse
+from api.models import MergedImageResponse, GenerateRequest, GenerateResponse, MergePosition, BackgroundResponse, TemplateResponse
 from api.services import get_random_template_service, get_templates_service, get_backgrounds_service, generate_card_service, save_upload_file
-
-
 
 from core_ai.utils.tools import (
     get_random_background,
     get_random_foreground,
     merge_foreground_background,
     apply_gaussian_blur_edges,
+    cleanup_merged_folder,
 )
 
 app = FastAPI(title="Birthday Card API")
@@ -123,10 +111,8 @@ def create_random_template(request: Request,
         out_name = f"{uuid.uuid4().hex}.png"
         merged_path = os.path.join(MERGED_DIR, out_name)
 
-        if abs(merge_aspect_ratio - 16/9) < 0.01:
-            merge_position = random.choice([MergePosition.LEFT, MergePosition.RIGHT])
-        else:
-            merge_position = random.choice([MergePosition.TOP, MergePosition.BOTTOM])
+        # Always use TOP position for foreground (text will be at bottom)
+        merge_position = MergePosition.TOP
         
         img = merge_foreground_background(
             foreground_path=fg_path,
@@ -135,6 +121,10 @@ def create_random_template(request: Request,
             merge_position=merge_position.value,
             aspect_ratio=merge_aspect_ratio,
         )
+        
+        # Cleanup merged folder to keep only 10 newest files
+        cleanup_merged_folder(MERGED_DIR, max_files=10)
+        
         base_url = str(request.base_url).rstrip("/")
         merged_image_url = f"{base_url}/{merged_path}"
         
@@ -155,7 +145,7 @@ def create_random_template(request: Request,
 @app.get("/backgrounds")
 def get_backgrounds(request: Request, n: int = 8):
     """Get a list of available backgrounds with 3:4 thumbnails for display."""
-    backgrounds_dir = os.path.join(STATIC_DIR, "backgrounds")
+    backgrounds_dir = os.path.join(STATIC_DIR, "images", "backgrounds")
     if not os.path.exists(backgrounds_dir):
         raise HTTPException(status_code=404, detail="Backgrounds directory not found")
     
@@ -171,7 +161,7 @@ def get_backgrounds(request: Request, n: int = 8):
     base_url = str(request.base_url).rstrip("/")
     backgrounds = []
     for bg_file in selected_backgrounds:
-        bg_path = os.path.join("static", "backgrounds", bg_file)
+        bg_path = os.path.join("static", "images", "backgrounds", bg_file)
         
         # Tạo thumbnail path
         bg_name, bg_ext = os.path.splitext(bg_file)
@@ -208,13 +198,11 @@ async def upload_template(request = Request,
     Upload a foreground image and merge it with a selected or random background.
     Automatically removes background and crops to bounding box.
     """
-    fg_dir = os.path.join(STATIC_DIR, "foregrounds/uploads")
+    fg_dir = os.path.join(STATIC_DIR, "images", "foregrounds", "uploads")
     os.makedirs(fg_dir, exist_ok=True)
     
-    if abs(merge_aspect_ratio - 16/9) < 0.01:
-        merge_position = random.choice([MergePosition.LEFT, MergePosition.RIGHT])
-    else:
-        merge_position = random.choice([MergePosition.TOP, MergePosition.BOTTOM])
+    # Always use TOP position for foreground (text will be at bottom)
+    merge_position = MergePosition.TOP
         
     # Save original uploaded file
     original_name = f"{uuid.uuid4().hex}_original.png"
@@ -266,6 +254,10 @@ async def upload_template(request = Request,
         merge_position=merge_position.value,
         aspect_ratio=merge_aspect_ratio,
     )
+    
+    # Cleanup merged folder to keep only 10 newest files
+    cleanup_merged_folder(MERGED_DIR, max_files=10)
+    
     base_url = str(request.base_url).rstrip("/")
     merged_image_url = f"{base_url}/{merged_path}"
 
@@ -287,6 +279,7 @@ def generate_card(req: GenerateRequest, request: Request):
     input_data = {
         "aspect_ratio": req.aspect_ratio,
         "greeting_text_instructions": req.greeting_text_instructions,
+        "card_type": req.card_type,  # Truyền loại thiệp đã chọn
         "background_path": req.background_path,
         "foreground_path": req.foreground_path,
         "merged_image_path": req.merged_image_path,
@@ -314,3 +307,18 @@ def generate_card(req: GenerateRequest, request: Request):
         foreground_path=req.foreground_path,
         merged_image_path=image_path,
     )
+
+@app.get("/templates/{type}", response_model=List[TemplateResponse])
+def get_templates_by_type(
+    type: str,
+    request: Request,
+    page: int = Query(1, ge=1, description="Page number, starting from 1"),
+    page_size: int = Query(10, ge=1, le=100, description="Number of items per page")
+):
+    """Get template cards by type with pagination."""
+    return get_templates_service(type, request, page, page_size)
+
+@app.get("/random-template/{type}", response_model=TemplateResponse)
+def get_random_template_by_type_endpoint(type: str, request: Request):
+    """Get a random template card by type."""
+    return get_random_template_service(type, request)

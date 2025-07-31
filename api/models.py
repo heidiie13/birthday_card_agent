@@ -7,8 +7,20 @@ from enum import Enum
 class MergePosition(Enum):
     TOP = 'top'
     BOTTOM = 'bottom'
-    LEFT = 'left'
-    RIGHT = 'right'
+
+class BackgroundResponse(BaseModel):
+    background_url: str
+    background_path: str
+
+class TemplateResponse(BaseModel):
+    background_path: str
+    foreground_path: str
+    merged_image_path: str
+    aspect_ratio: float
+    merge_position: str
+    merge_margin_ratio: float
+    merge_foreground_ratio: float
+    merged_image_url: str
     
 class MergedImage(BaseModel):
     background_path: str
@@ -42,6 +54,7 @@ class MergedImageResponse(MergedImage):
 
 class GenerateRequest(MergedImage):
     greeting_text_instructions: Optional[str] = None
+    card_type: Optional[str] = None
 
 class GenerateResponse(BaseModel):
     image_url: str

@@ -8,7 +8,7 @@ from langchain_openai import ChatOpenAI
 from langchain_core.runnables import Runnable
 from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
 from pydantic import BaseModel, Field
-from .tools import merge_foreground_background, add_text_to_image, get_random_font, get_dominant_color, get_current_time
+from .tools import merge_foreground_background, add_text_to_image, get_random_font, get_dominant_color, get_current_time, cleanup_merged_folder
 from .prompt import system_prompt, user_prompt_template
 from .state import AgentState
 
@@ -44,65 +44,44 @@ def extract_json(text):
     return None
 
 class ResponseLLM(BaseModel):
+    title: str = Field(description="Title of the card in English")
     greeting_text: str = Field(description="Greeting text in Vietnamese")
+    card_type: str = Field(description="Type of card (birthday, graduation)")
     font_color: str = Field(description="Font color in hex format, e.g., #FFFFFF")
 
 def llm_node(state: AgentState) -> AgentState:
-    from langchain_core.tools import Tool
-    from langchain_core.messages import ToolMessage
-    
     llm = _get_model()
-    
-    # Create tool for current time
-    current_time_tool = Tool(
-        name="get_current_time",
-        description="Get current date and time in DD/MM/YYYY format to calculate age",
-        func=get_current_time
-    )
-    
-    # Bind tool to LLM
-    llm_with_tools = llm.bind_tools([current_time_tool])
     
     # Ensure greeting_text_instructions is not None
     state_dict = state.model_dump()
     if state_dict.get('greeting_text_instructions') is None:
         state_dict['greeting_text_instructions'] = "Tạo lời chúc sinh nhật vui vẻ, tích cực"
     
+    # Handle card_type instruction
+    if state.card_type:
+        if state.card_type == "birthday":
+            state_dict['card_type_instruction'] = f"Loại thiệp đã chọn: {state.card_type} (sinh nhật) - **BẮT BUỘC** tạo lời chúc mừng sinh nhật."
+        elif state.card_type == "graduation":
+            state_dict['card_type_instruction'] = f"Loại thiệp đã chọn: {state.card_type} (tốt nghiệp) - **BẮT BUỘC** tạo lời chúc mừng tốt nghiệp."
+        else:
+            state_dict['card_type_instruction'] = f"Loại thiệp đã chọn: {state.card_type}."
+    else:
+        state_dict['card_type_instruction'] = "Loại thiệp chưa được chọn - hãy tự động chọn dựa trên yêu cầu nội dung."
+    
+    from datetime import datetime
+    current_time = datetime.now().strftime("%d/%m/%Y")
+    sys_prompt = system_prompt.format(current_time=current_time)
     user_prompt = user_prompt_template.format(**state_dict)
 
     try:
         messages = [
-            SystemMessage(content=system_prompt),
+            SystemMessage(content=sys_prompt),
             HumanMessage(content=user_prompt)
         ]
         
-        # First call - may include tool calls
-        response = llm_with_tools.invoke(messages)
-        logger.info(f"Initial LLM response: {response}")
-        
-        # Check if LLM wants to use tools
-        if hasattr(response, 'tool_calls') and response.tool_calls:
-            logger.info(f"Tool calls detected: {response.tool_calls}")
-            messages.append(response)
-            
-            # Execute tool calls
-            for tool_call in response.tool_calls:
-                if tool_call['name'] == 'get_current_time':
-                    current_time = get_current_time()
-                    logger.info(f"Current time from tool: {current_time}")
-                    tool_message = ToolMessage(
-                        content=current_time,
-                        tool_call_id=tool_call['id']
-                    )
-                    messages.append(tool_message)
-            
-            # Get final structured response
-            final_response = llm.with_structured_output(ResponseLLM).invoke(messages)
-            parsed = final_response
-        else:
-            # No tools needed, get structured output directly
-            logger.info("No tool calls, getting structured output directly")
-            parsed = llm.with_structured_output(ResponseLLM).invoke(messages)
+        # Get structured output directly
+        logger.info("Getting structured output directly")
+        parsed = llm.with_structured_output(ResponseLLM).invoke(messages)
             
         logger.info(f"Final parsed response: {parsed}")
     except Exception as e:
@@ -110,7 +89,9 @@ def llm_node(state: AgentState) -> AgentState:
         return state
     
     state.messages.append(AIMessage(content=parsed.model_dump_json()))
+    state.title = parsed.title
     state.greeting_text = parsed.greeting_text
+    state.card_type = parsed.card_type
     state.font_color = parsed.font_color
     return state
 
@@ -131,11 +112,13 @@ def add_text_node(state: AgentState) -> AgentState:
     try:
         img = add_text_to_image(
             image_path=image_path,
-            output_path=output_path,
             text=state.greeting_text,
-            font_color=state.font_color,
+            output_path=output_path,
             font_path=font_path,
+            font_color=state.font_color,
             font_size=state.font_size,
+            title=state.title,
+            title_font_path=font_path,
             text_position=state.text_position,
             margin_ratio=state.text_margin_ratio,
             text_ratio=state.text_ratio,
@@ -143,6 +126,10 @@ def add_text_node(state: AgentState) -> AgentState:
     except Exception as e:
         logger.error(f"Error adding text to image: {e}")
         return state
+
+    # Cleanup merged folder to keep only 10 newest files
+    merged_dir = os.path.dirname(output_path)
+    cleanup_merged_folder(merged_dir, max_files=10)
 
     state.merged_with_text_path = output_path
     state.font_path = font_path
@@ -162,14 +149,8 @@ def merge_node(state: AgentState) -> AgentState:
     state.font_size = 70
     state.merge_margin_ratio = 0.05
 
-    # Determine text position based on merge position
-    position_map = {
-        "left": "right",
-        "right": "left",
-        "top": "bottom",
-        "bottom": "top"
-    }
-    state.text_position = position_map.get(state.merge_position, "top")
+    # Always use fixed positions: foreground TOP, text BOTTOM
+    state.text_position = "bottom"
 
     greeting_words = len(state.greeting_text.split()) if state.greeting_text else 0
 

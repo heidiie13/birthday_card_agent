@@ -6,14 +6,23 @@ API_URL = "http://localhost:8000"
 
 st.set_page_config(page_title="Birthday Card Generator", layout="wide")
 
-def fetch_templates() -> List[Dict]:
+def fetch_templates(card_type: str = "birthday") -> List[Dict]:
     try:
-        resp = requests.get(f"{API_URL}/templates", params={"n": 8, "merge_aspect_ratio": 3/4})
+        resp = requests.get(f"{API_URL}/templates/{card_type}", params={"page": 1, "page_size": 8})
         resp.raise_for_status()
         return resp.json()
     except Exception as e:
         st.error(f"Lỗi khi lấy mẫu: {e}")
         return []
+
+def fetch_random_template(card_type: str = "birthday") -> Dict:
+    try:
+        resp = requests.get(f"{API_URL}/random-template/{card_type}")
+        resp.raise_for_status()
+        return resp.json()
+    except Exception as e:
+        st.error(f"Lỗi khi lấy mẫu ngẫu nhiên: {e}")
+        return {}
 
 def fetch_backgrounds(n=8) -> List[Dict]:
     try:
@@ -46,6 +55,16 @@ def main():
             horizontal=False,
         )
 
+        # Thêm dropdown cho loại thiệp khi chọn "Chọn mẫu" hoặc "Ngẫu nhiên"
+        card_type = "birthday"  # Default value
+        if mode in ["Chọn mẫu", "Ngẫu nhiên"]:
+            card_type = st.selectbox(
+                "Loại thiệp:",
+                ["birthday", "graduation"],
+                format_func=lambda x: "Sinh nhật" if x == "birthday" else "Tốt nghiệp",
+                help="Chọn loại thiệp bạn muốn tạo"
+            )
+
         # Nút và controls tương ứng với mode
         uploaded_foreground = None
         if mode == "Tải ảnh lên":
@@ -65,14 +84,15 @@ def main():
                         del st.session_state["selected_upload_background"]
         elif mode == "Chọn mẫu":
             if st.button("Làm mới mẫu"):
-                st.session_state["templates"] = fetch_templates()
+                st.session_state["templates"] = fetch_templates(card_type)
+                st.session_state["template_card_type"] = card_type
                 if "selected_template" in st.session_state:
                     del st.session_state["selected_template"]
         elif mode == "Ngẫu nhiên":
-            if st.button("Chọn mẫu ngẫu nhiên") or "random_template" not in st.session_state:
-                resp = requests.get(f"{API_URL}/templates", params={"n":1, "merge_aspect_ratio": 3/4})
-                resp.raise_for_status()
-                st.session_state["random_template"] = resp.json()[0]
+            if st.button("Chọn mẫu ngẫu nhiên") or "random_template" not in st.session_state or st.session_state.get("random_card_type") != card_type:
+                random_template = fetch_random_template(card_type)
+                st.session_state["random_template"] = random_template
+                st.session_state["random_card_type"] = card_type
 
         st.divider()  # Thêm đường phân cách
 
@@ -90,33 +110,41 @@ def main():
     selected_background = st.session_state.get("selected_upload_background", None)
 
     if mode == "Tải ảnh lên" and uploaded_foreground:
-        files = {"file": uploaded_foreground}
-        params = {"merge_aspect_ratio": 3/4}
-        
-        # Thêm background đã chọn vào params nếu có
+        # Chỉ merge khi đã chọn background
         if selected_background:
-            params["background_path"] = selected_background["path"]
+            files = {"file": uploaded_foreground}
+            params = {
+                "merge_aspect_ratio": 3/4,
+                "background_path": selected_background["path"]
+            }
+                
+            merge_resp = requests.post(f"{API_URL}/upload-template", files=files, params=params)
+            merge_resp.raise_for_status()
+            merge_data = merge_resp.json()
+            merged_preview_url = merge_data.get("merged_image_path")
+            if merged_preview_url:
+                merged_preview_url = f"{API_URL}/{merged_preview_url}"
             
-        merge_resp = requests.post(f"{API_URL}/upload-template", files=files, params=params)
-        merge_resp.raise_for_status()
-        merge_data = merge_resp.json()
-        merged_preview_url = merge_data.get("merged_image_path")
-        if merged_preview_url:
-            merged_preview_url = f"{API_URL}/{merged_preview_url}"
-        
-        selected_template = {
-            "background_path": merge_data["background_path"],
-            "foreground_path": merge_data["foreground_path"],
-            "merged_image_path": merge_data["merged_image_path"],
-            "aspect_ratio": merge_data["aspect_ratio"],
-            "merge_position": merge_data["merge_position"],
-            "merge_margin_ratio": merge_data["merge_margin_ratio"],
-            "merge_foreground_ratio": merge_data["merge_foreground_ratio"],
-        }
+            selected_template = {
+                "background_path": merge_data["background_path"],
+                "foreground_path": merge_data["foreground_path"],
+                "merged_image_path": merge_data["merged_image_path"],
+                "aspect_ratio": merge_data["aspect_ratio"],
+                "merge_position": merge_data["merge_position"],
+                "merge_margin_ratio": merge_data["merge_margin_ratio"],
+                "merge_foreground_ratio": merge_data["merge_foreground_ratio"],
+            }
+        else:
+            # Chưa chọn background, set selected_template = None
+            selected_template = None
 
     elif mode == "Chọn mẫu":
-        if "templates" not in st.session_state:
-            st.session_state["templates"] = fetch_templates()
+        if "templates" not in st.session_state or st.session_state.get("template_card_type") != card_type:
+            st.session_state["templates"] = fetch_templates(card_type)
+            st.session_state["template_card_type"] = card_type
+            # Reset selected template when card type changes
+            if "selected_template" in st.session_state:
+                del st.session_state["selected_template"]
         templates = st.session_state["templates"][:8] if st.session_state["templates"] else []
         selected_template = st.session_state.get("selected_template", None)
 
@@ -133,10 +161,10 @@ def main():
                 st.stop()
                 
             if mode == "Tải ảnh lên" and not uploaded_foreground:
-                st.warning("Vui lòng upload ảnh foreground.")
+                st.warning("Vui lòng upload ảnh mặt trước.")
                 st.stop()
             elif mode == "Tải ảnh lên" and uploaded_foreground and not selected_background:
-                st.warning("Vui lòng chọn background.")
+                st.warning("Vui lòng chọn ảnh nền.")
                 st.stop()
             elif mode == "Chọn mẫu" and "selected_template" not in st.session_state:
                 st.warning("Vui lòng chọn một mẫu.")
@@ -148,6 +176,7 @@ def main():
             payload = {
                 "aspect_ratio": 3/4,
                 "greeting_text_instructions": greeting_text_instructions or None,
+                "card_type": card_type,  # Truyền loại thiệp đã chọn
             }
             if selected_template:
                 payload.update({
@@ -186,9 +215,13 @@ def main():
                     st.subheader("Xem trước mẫu")
                     st.image(merged_preview_url, caption="Ảnh ghép hoàn thành", width=300)
                     st.divider()
+                elif selected_background and not merged_preview_url:
+                    st.info("Đang xử lý ảnh ghép...")
+                elif not selected_background:
+                    st.info("👇 Vui lòng chọn ảnh nền bên dưới để xem trước")
                 
                 # Phần chọn background
-                st.subheader("Chọn background")
+                st.subheader("Chọn ảnh nền")
                 
                 if upload_backgrounds:
                     # Grid backgrounds với 4 cột (hiển thị 4 backgrounds)
@@ -201,7 +234,7 @@ def main():
                                 st.session_state["selected_upload_background"] = bg
                                 st.rerun()
             else:
-                st.info("Vui lòng upload foreground ở cột bên trái")
+                st.info("Vui lòng tải lên ảnh mặt trước ở cột bên trái")
         
         # Hiển thị các mẫu để chọn
         elif mode == "Chọn mẫu" and templates:
@@ -209,14 +242,15 @@ def main():
             # Hiển thị template đã chọn nếu có
             if selected_template:
                 st.info("✅ Đã chọn mẫu")
-                st.image(selected_template.get('merged_image_url', ''), caption="Mẫu đã chọn", width=200)
+                img_url = selected_template.get('merged_image_url', f"{API_URL}/{selected_template['merged_image_path']}")
+                st.image(img_url, caption="Mẫu đã chọn", width=200)
             
             # Grid các mẫu với 4 cột
             cols = st.columns(4)
             for idx, template in enumerate(templates):
                 col = cols[idx % 4]
                 with col:
-                    img_url = template['merged_image_url']
+                    img_url = template.get('merged_image_url', f"{API_URL}/{template['merged_image_path']}")
                     st.image(img_url, width=120, caption=f"Mẫu {idx+1}")
                     if st.button("Chọn", key=f"select_{idx}", use_container_width=True):
                         st.session_state["selected_template"] = template
@@ -225,7 +259,9 @@ def main():
         # Hiển thị mẫu ngẫu nhiên
         elif mode == "Ngẫu nhiên" and selected_template:
             st.subheader("Mẫu ngẫu nhiên")
-            img_url = f"{API_URL}/{selected_template['merged_image_path']}"
+            img_url = selected_template.get("merged_image_url")
+            if not img_url:
+                img_url = f"{API_URL}/{selected_template['merged_image_path']}"
             st.image(img_url, width=300, caption="Mẫu ngẫu nhiên")
 
     # Hiển thị kết quả thiệp ở cột phải (giữa màn hình)

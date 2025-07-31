@@ -17,7 +17,9 @@ class AgentState(BaseModel):
     merged_with_text_path: Optional[str] = None
     
     # Text info
+    title: Optional[str] = None
     greeting_text: Optional[str] = None
+    card_type: Optional[str] = None
     font_color: Optional[str] = None
     font_path: Optional[str] = None
 

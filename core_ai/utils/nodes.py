@@ -100,6 +100,7 @@ def random_template_node(state: State) -> State:
     state.background_path = template.get("background_path")
 
     logger.info(f"Foreground path: {state.foreground_path}")
+    logger.info(f"Background path: {state.background_path}")
     return state
     
 def font_color_node(state: State) -> State:

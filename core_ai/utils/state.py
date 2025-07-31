@@ -23,7 +23,7 @@ class State(BaseModel):
     font_path: Optional[str] = None
     font_size: int = 70
     title_font_path: Optional[str] = None
-    title_font_size: int = 100
+    title_font_size: int = 90
 
     # Merge params
     merge_position: str = "top"

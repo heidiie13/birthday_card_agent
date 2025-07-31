@@ -229,6 +229,7 @@ def add_text_to_image(
         title_w, title_h = title_bbox[2] - title_bbox[0], title_bbox[3] - title_bbox[1]
     else:
         title_h = 0
+        title_w = 0
         wrapped_title = ''
         title_font = None
 
@@ -256,25 +257,30 @@ def add_text_to_image(
             font = ImageFont.load_default()
 
     # Position
-    max_w = max(text_w, title_w if title else 0)
     if text_position == 'top':
-        x = margin + (text_area_w - max_w) // 2
-        y = margin + (text_area_h - (title_h + text_h)) // 2
+        base_x = margin
+        base_y = margin + (text_area_h - (title_h + text_h)) // 2
     elif text_position == 'bottom':
-        x = margin + (text_area_w - max_w) // 2
-        y = H - text_area_h - margin + (text_area_h - (title_h + text_h)) // 2
+        base_x = margin
+        base_y = H - text_area_h - margin + (text_area_h - (title_h + text_h)) // 2
     elif text_position == 'left':
-        x = margin + (text_area_w - max_w) // 2
-        y = margin + (text_area_h - (title_h + text_h)) // 2
+        base_x = margin
+        base_y = margin + (text_area_h - (title_h + text_h)) // 2
     elif text_position == 'right':
-        x = W - text_area_w - margin + (text_area_w - max_w) // 2
-        y = margin + (text_area_h - (title_h + text_h)) // 2
+        base_x = W - text_area_w - margin
+        base_y = margin + (text_area_h - (title_h + text_h)) // 2
+
+    # Calculate centered positions for title and text separately
+    title_x = base_x + (text_area_w - title_w) // 2 if title else base_x
+    text_x = base_x + (text_area_w - text_w) // 2
 
     with Pilmoji(img, source=GoogleEmojiSource()) as pilmoji:
         if title:
-            pilmoji.text((x, y), wrapped_title, font=title_font, fill=font_color, align='center')
-            y += title_h + 70
-        pilmoji.text((x, y), wrapped_text, font=font, fill=font_color, align='center', spacing=12)
+            pilmoji.text((title_x, base_y), wrapped_title, font=title_font, fill=font_color, align='center')
+            text_y = base_y + title_h + 70
+        else:
+            text_y = base_y
+        pilmoji.text((text_x, text_y), wrapped_text, font=font, fill=font_color, align='center', spacing=12)
 
     img.save(output_path)
     return {
@@ -298,9 +304,6 @@ def _get_wrapped(text, font, max_width):
     """
     lines = []
     for paragraph in text.split('\n'):
-        if not paragraph:
-            lines.append('')
-            continue
         line = ''
         for word in paragraph.split(' '):
             test_line = line + (' ' if line else '') + word

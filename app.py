@@ -1,14 +1,18 @@
-import streamlit as st
+import os
+from dotenv import load_dotenv
 import requests
 from typing import List, Dict
+import streamlit as st
 
-API_URL = "http://localhost:8000"
+load_dotenv()
+
+BACKEND_URL = os.getenv("BACKEND_URL")
 
 st.set_page_config(page_title="Card Generator", layout="wide")
 
 def fetch_templates(card_type: str = "birthday", page: int = 1, page_size: int = 4) -> List[Dict]:
     try:
-        resp = requests.get(f"{API_URL}/templates/{card_type}", params={"page": page, "page_size": page_size})
+        resp = requests.get(f"{BACKEND_URL}/templates/{card_type}", params={"page": page, "page_size": page_size})
         resp.raise_for_status()
         return resp.json()
     except Exception as e:
@@ -17,7 +21,7 @@ def fetch_templates(card_type: str = "birthday", page: int = 1, page_size: int =
 
 def fetch_random_template(card_type: str = "birthday") -> Dict:
     try:
-        resp = requests.get(f"{API_URL}/random-template/{card_type}")
+        resp = requests.get(f"{BACKEND_URL}/random-template/{card_type}")
         resp.raise_for_status()
         return resp.json()
     except Exception as e:
@@ -26,7 +30,7 @@ def fetch_random_template(card_type: str = "birthday") -> Dict:
 
 def fetch_backgrounds(page: int = 1, page_size: int = 4) -> List[Dict]:
     try:
-        resp = requests.get(f"{API_URL}/backgrounds", params={"page": page, "page_size": page_size})
+        resp = requests.get(f"{BACKEND_URL}/backgrounds", params={"page": page, "page_size": page_size})
         resp.raise_for_status()
         return resp.json()
     except Exception as e:
@@ -50,7 +54,6 @@ def main():
             horizontal=False,
         )
         
-        # Dropdown cho loại thiệp khi chọn "Chọn mẫu" hoặc "Ngẫu nhiên"
         card_type = "birthday"
         if mode in ["Chọn mẫu", "Ngẫu nhiên"]:
             card_type = st.selectbox(
@@ -71,9 +74,6 @@ def main():
         # Nút tạo thiệp
         generate_btn = st.button("🎨 Tạo thiệp", type="primary", use_container_width=True)
 
-    # Xử lý logic cho từng mode
-    selected_template = None
-    
     # Phần giữa: Hiển thị mẫu và chức năng chọn
     with center_col:
         if mode == "Chọn mẫu":
@@ -96,7 +96,7 @@ def main():
                 with cols[idx]:
                     if has_templates and idx < len(templates):
                         template = templates[idx]
-                        img_url = template.get('merged_image_url', f"{API_URL}/{template['merged_image_path']}")
+                        img_url = template.get('merged_image_url', f"{BACKEND_URL}/{template['merged_image_path']}")
                         st.image(img_url, caption=f"Mẫu {idx+1}", width=120)
                         # Căn giữa nút chọn bằng cách chia cột nhỏ hơn
                         btn_col1, btn_col2, btn_col3 = st.columns([0.1, 0.6, 0.3])
@@ -125,9 +125,6 @@ def main():
             if not has_templates and st.session_state.templates_page == 1:
                 st.info("Không có mẫu nào")
             
-            if "selected_template" in st.session_state:
-                selected_template = st.session_state.selected_template
-            
         elif mode == "Ngẫu nhiên":
             st.markdown("<h3 style='text-align:center;'>Mẫu ngẫu nhiên</h3>", unsafe_allow_html=True)
             center_col1, center_col2, center_col3 = st.columns([0.2, 0.6, 0.2])
@@ -140,7 +137,7 @@ def main():
                         st.rerun()
                 if "random_template" in st.session_state:
                     template = st.session_state.random_template
-                    img_url = template.get("merged_image_url", f"{API_URL}/{template['merged_image_path']}")
+                    img_url = template.get("merged_image_url", f"{BACKEND_URL}/{template['merged_image_path']}")
                     st.markdown(
                         f"""
                         <div style="display: flex; justify-content: center;">
@@ -166,18 +163,15 @@ def main():
                     # Upload foreground
                     files = {"file": uploaded_file}
                     try:
-                        upload_resp = requests.post(f"{API_URL}/upload_foreground", files=files)
+                        upload_resp = requests.post(f"{BACKEND_URL}/upload_foreground", files=files)
                         upload_resp.raise_for_status()
                         upload_data = upload_resp.json()
                         if "error" not in upload_data:
-                            # st.success("✅ Upload thành công!")
-                            # col1, col2, col3 = st.columns([0.2, 0.6, 0.2])
-                            # with col2:
-                            #     st.image(upload_data["foreground_url"], caption="Ảnh đã upload", width=150)
-                            selected_template = {
+                            st.session_state.uploaded_template = {
                                 "foreground_path": upload_data["foreground_path"],
                                 "background_path": None,
-                                "merged_image_path": None
+                                "merged_image_path": None,
+                                "foreground_url": upload_data.get("foreground_url")
                             }
                         else:
                             st.error(f"Lỗi upload: {upload_data['error']}")
@@ -190,12 +184,15 @@ def main():
             if not greeting_text:
                 st.error("Vui lòng nhập yêu cầu nội dung thiệp!")
             else:
-                # Lấy selected_template từ session_state nếu có (ưu tiên random_template nếu mode là Ngẫu nhiên)
-                selected_template_gen = selected_template
+                # Lấy template tương ứng với mode đã chọn
+                selected_template_gen = None
                 if mode == "Ngẫu nhiên" and "random_template" in st.session_state:
                     selected_template_gen = st.session_state.random_template
                 elif mode == "Chọn mẫu" and "selected_template" in st.session_state:
                     selected_template_gen = st.session_state.selected_template
+                elif mode == "Tải ảnh lên" and "uploaded_template" in st.session_state:
+                    selected_template_gen = st.session_state.uploaded_template
+                
                 payload = {"greeting_text_instructions": greeting_text}
                 if selected_template_gen:
                     if selected_template_gen.get("background_path"):
@@ -207,7 +204,7 @@ def main():
                 # Gọi API tạo thiệp
                 with st.status("Đang tạo thiệp...", expanded=True):
                     try:
-                        resp = requests.post(f"{API_URL}/generate-card", json=payload)
+                        resp = requests.post(f"{BACKEND_URL}/generate-card", json=payload)
                         resp.raise_for_status()
                         result = resp.json()
                         st.session_state.generated_card = result
@@ -255,32 +252,33 @@ def main():
             if mode == "Chọn mẫu" and "selected_template" in st.session_state:
                 st.success("Mẫu đã chọn")
                 img_url = st.session_state.selected_template.get('merged_image_url', 
-                        f"{API_URL}/{st.session_state.selected_template['merged_image_path']}")
+                        f"{BACKEND_URL}/{st.session_state.selected_template['merged_image_path']}")
                 img_col1, img_col2, img_col3 = st.columns([0.2, 0.6, 0.2])
                 with img_col2:
                     st.image(img_url, width=200)
             elif mode == "Ngẫu nhiên" and "random_template" in st.session_state:
                 st.success("Mẫu ngẫu nhiên")
                 template = st.session_state.random_template
-                img_url = template.get("merged_image_url", f"{API_URL}/{template['merged_image_path']}")
+                img_url = template.get("merged_image_url", f"{BACKEND_URL}/{template['merged_image_path']}")
                 img_col1, img_col2, img_col3 = st.columns([0.2, 0.6, 0.2])
                 with img_col2:
                     st.image(img_url, width=200)
-            elif mode == "Tải ảnh lên" and uploaded_file:
+            elif mode == "Tải ảnh lên" and "uploaded_template" in st.session_state:
                 st.success("Ảnh đã upload")
                 img_col1, img_col2, img_col3 = st.columns([0.2, 0.6, 0.2])
                 with img_col2:
-                    # Hiển thị ảnh đã upload bằng URL trả về từ API nếu có
-                    if 'upload_data' in locals() and 'foreground_url' in upload_data:
-                        st.image(upload_data['foreground_url'], width=200)
+                    # Hiển thị ảnh đã upload bằng URL trả về từ API
+                    uploaded_template = st.session_state.uploaded_template
+                    if uploaded_template.get('foreground_url'):
+                        st.image(uploaded_template['foreground_url'], width=200)
                     else:
-                        st.image(uploaded_file, width=200)
+                        st.info("Ảnh đang được xử lý...")
             else:
                 if mode == "Chọn mẫu" and "selected_template" not in st.session_state:
                     st.info("Chọn mẫu để xem preview")
                 elif mode == "Ngẫu nhiên" and "random_template" not in st.session_state:
                     st.info("Nhấn nút để lấy mẫu ngẫu nhiên")
-                elif mode == "Tải ảnh lên" and not uploaded_file:
+                elif mode == "Tải ảnh lên" and "uploaded_template" not in st.session_state:
                     st.info("Upload ảnh để xem preview")
                 else:
                     st.info("Thiệp sẽ hiển thị ở đây sau khi tạo")

@@ -1,20 +1,20 @@
-import json
-import os
-from collections import Counter
-import random
-from typing import Optional
 from PIL import ImageDraw, ImageFont, Image, ImageDraw, ImageFont
 from pilmoji import Pilmoji
 from pilmoji.source import GoogleEmojiSource
+from collections import Counter
+from typing import Optional
+import os
+import random
+import io
 
 def get_dominant_color(image_path: str, resize=50) -> str:
     if not os.path.exists(image_path):
         raise FileNotFoundError(f"Image file not found: {image_path}")
     
     img = Image.open(image_path).convert("RGB")
-    img = img.resize((resize, resize))
+    img = img.resize((resize, resize))  # Resize nhỏ để giảm tính toán
     pixels = list(img.getdata())
-    most_common = Counter(pixels).most_common(1)[0][0]
+    most_common = Counter(pixels).most_common(1)[0][0]  # pixel phổ biến nhất
     return '#{:02x}{:02x}{:02x}'.format(*most_common)
 
 def merge_foreground_background(
@@ -161,14 +161,14 @@ def add_text_to_image(
     Margin is applied to avoid touching the edges.
 
     Args:
-        image (Image.Image): The merged image (PIL Image).
-        output_path (str): Path to save the image with text.
+        image_path (str): Path to the merged image.
         text (str): Text to add.
+        output_path (str): Path to save the image with text.
         font_path (str): Path to .ttf font file (optional).
         font_color (str): Text color in hex (default black).
         font_size (int): Font size (optional, auto-fit if None).
         title (str): Title text (optional).
-        title_font_path (str): Path to .ttf font file (optional).
+        title_font_path (str): Path to .ttf font file for title (optional).
         title_font_size (int): Title font size (optional, auto-fit if None).
         text_position (str): One of 'top', 'bottom', 'left', 'right'.
         margin_ratio (float): Margin as a fraction of image size (default 0.05).
@@ -272,6 +272,229 @@ def add_text_to_image(
         "title_font_size": title_font_size,
     }
 
+def get_random_background() -> str:
+    """
+    Randomly select a background image from static/backgrounds.
+
+    Returns:
+        str: The file path to the randomly selected background image.
+    """
+    backgrounds_dir = os.path.join('static', 'backgrounds')
+    files = [f for f in os.listdir(backgrounds_dir)]
+    if not files:
+        raise FileNotFoundError('No background images found in static/backgrounds/')
+    selected = random.choice(files)
+    return os.path.join(backgrounds_dir, selected)
+
+
+def get_random_foreground() -> str:
+    """
+    Randomly select a foreground image from static/foregrounds.
+
+    Returns:
+        str: The file path to the randomly selected foreground image.
+    """
+    foregrounds_dir = os.path.join('static', 'foregrounds')
+    files = [f for f in os.listdir(foregrounds_dir)]
+    if not files:
+        raise FileNotFoundError('No foreground images found in static/foregrounds/')
+    selected = random.choice(files)
+    return os.path.join(foregrounds_dir, selected)
+
+
+def get_random_font() -> str:
+    """
+    Randomly select a font file from static/fonts.
+
+    Returns:
+        str: The file path to the randomly selected font file.
+    """
+
+    fonts_dir = os.path.join("static", "fonts")
+    files = [f for f in os.listdir(fonts_dir) if f.endswith(".ttf") or f.endswith(".otf")]
+    if not files:
+        raise FileNotFoundError("No font files found in static/fonts/")
+    return os.path.join(fonts_dir, random.choice(files))
+
+
+def get_current_time() -> str:
+    """
+    Get current date and time in Vietnamese format for LLM to calculate age.
+    
+    Returns:
+        str: Current date in DD/MM/YYYY format
+    """
+    from datetime import datetime
+    return datetime.now().strftime("%d/%m/%Y")
+
+
+from PIL import Image, ImageFilter
+
+def create_alpha_mask_with_blurred_edges(fg_size, blur_region, blur_radius, blur_top=True, blur_bottom=True, blur_left=True, blur_right=True):
+    """
+    Tạo alpha mask với các cạnh làm mờ bằng Gaussian blur.
+    Args:
+        fg_size: Tuple (width, height) của ảnh
+        blur_region: Kích thước vùng blur ở mỗi cạnh (pixels)
+        blur_radius: Độ mạnh của Gaussian blur
+        blur_top, blur_bottom, blur_left, blur_right: Có áp dụng blur cho từng cạnh không
+    Returns:
+        PIL.Image: Alpha mask đã được blur
+    """
+    width, height = fg_size
+    
+    # Tạo mask mặc định: toàn bộ ảnh opaque (255)
+    alpha = Image.new('L', (width, height), 255)
+    data = alpha.load()  # Truy cập từng pixel
+    
+    for y in range(height):
+        for x in range(width):
+            min_alpha = 255  # Giá trị alpha tối đa
+            
+            # Xử lý cạnh trên
+            if blur_top and y < blur_region:
+                ratio = y / blur_region
+                current = int(ratio * 255)
+                if current < min_alpha:
+                    min_alpha = current
+            
+            # Xử lý cạnh dưới
+            if blur_bottom and y >= height - blur_region:
+                ratio = (height - y - 1) / blur_region
+                current = int(ratio * 255)
+                if current < min_alpha:
+                    min_alpha = current
+            
+            # Xử lý cạnh trái
+            if blur_left and x < blur_region:
+                ratio = x / blur_region
+                current = int(ratio * 255)
+                if current < min_alpha:
+                    min_alpha = current
+            
+            # Xử lý cạnh phải
+            if blur_right and x >= width - blur_region:
+                ratio = (width - x - 1) / blur_region
+                current = int(ratio * 255)
+                if current < min_alpha:
+                    min_alpha = current
+            
+            # Xử lý các góc (đảm bảo chuyển tiếp trơn tru)
+            if blur_top and blur_left and x < blur_region and y < blur_region:
+                corner_ratio = max(x / blur_region, y / blur_region)
+                current = int(corner_ratio * 255)
+                if current < min_alpha:
+                    min_alpha = current
+            
+            if blur_top and blur_right and x >= width - blur_region and y < blur_region:
+                corner_ratio = max((width - x - 1) / blur_region, y / blur_region)
+                current = int(corner_ratio * 255)
+                if current < min_alpha:
+                    min_alpha = current
+            
+            if blur_bottom and blur_left and x < blur_region and y >= height - blur_region:
+                corner_ratio = max(x / blur_region, (height - y - 1) / blur_region)
+                current = int(corner_ratio * 255)
+                if current < min_alpha:
+                    min_alpha = current
+            
+            if blur_bottom and blur_right and x >= width - blur_region and y >= height - blur_region:
+                corner_ratio = max((width - x - 1) / blur_region, (height - y - 1) / blur_region)
+                current = int(corner_ratio * 255)
+                if current < min_alpha:
+                    min_alpha = current
+            
+            # Cập nhật giá trị alpha nhỏ nhất (mờ nhất) cho pixel
+            data[x, y] = min_alpha
+    
+    # Áp dụng Gaussian blur mạnh hơn
+    blurred = alpha.filter(ImageFilter.GaussianBlur(radius=blur_radius))
+    
+    return blurred
+
+
+def apply_gaussian_blur_edges(input_path: str, output_path: str, blur_region, blur_radius, blur_top=True, blur_bottom=True, blur_left=True, blur_right=True) -> str:
+    """
+    Áp dụng Gaussian blur viền cho ảnh đã upload.
+    
+    Args:
+        input_path (str): Path to the input image
+        output_path (str): Path to save the processed image
+        blur_region (int): Kích thước vùng blur ở mỗi cạnh (pixels)
+        blur_radius (float): Độ mạnh của Gaussian blur
+        blur_top, blur_bottom, blur_left, blur_right (bool): Có áp dụng blur cho từng cạnh không
+        
+    Returns:
+        str: Path to the processed image
+    """
+    
+    try:
+        from PIL import Image
+        
+        # Load the input image
+        img = Image.open(input_path).convert('RGBA')
+        
+        # Tạo alpha mask với blurred edges
+        alpha_mask = create_alpha_mask_with_blurred_edges(
+            img.size, 
+            blur_region=blur_region,
+            blur_radius=blur_radius,
+            blur_top=blur_top,
+            blur_bottom=blur_bottom,
+            blur_left=blur_left,
+            blur_right=blur_right
+        )
+        
+        # Áp dụng alpha mask lên ảnh
+        img.putalpha(alpha_mask)
+        
+        # Ensure the directory exists
+        os.makedirs(os.path.dirname(output_path), exist_ok=True)
+        
+        # Save the processed image
+        img.save(output_path, 'PNG')
+        
+        return output_path
+        
+    except Exception as e:
+        # If any error occurs, fall back to copying the original
+        import shutil
+        os.makedirs(os.path.dirname(output_path), exist_ok=True)
+        shutil.copy2(input_path, output_path)
+        return output_path
+
+def get_templates_by_type(card_type: str):
+    """
+    Get a list of image info dictionaries by type from the template_card_info.json file.
+    Args:
+        card_type (str): The type name (e.g., 'birthday')
+    Returns:
+        List[dict]: A list of image info dictionaries matching the type
+    """
+    import json
+    json_path = 'static/images/template_card_info.json'
+    if not os.path.exists(json_path):
+        return []
+    with open(json_path, 'r', encoding='utf-8') as f:
+        try:
+            data = json.load(f)
+        except Exception:
+            return []
+    return [item for item in data if item.get('card_type') == card_type]
+
+def get_random_template_by_type(card_type: str):
+    """
+    Get a random template image info dictionary by type from the template_card_info.json file.
+    Args:
+        card_type (str): The type name (e.g., 'birthday')
+    Returns:
+        dict: A random image info dictionary matching the type, or None if not found
+    """
+    templates = get_templates_by_type(card_type)
+    if not templates:
+        return None
+    return random.choice(templates)
+
 def _get_wrapped(text, font, max_width):
     """
     Wrap text to fit within a given width using a given font.
@@ -293,49 +516,3 @@ def _get_wrapped(text, font, max_width):
                 line = test_line
         lines.append(line)
     return '\n'.join(lines)
-
-def get_templates_by_type(card_type: str):
-    """
-    Get a list of image info dictionaries by type from the template_card_info.json file.
-    Args:
-        card_type (str): The type name (e.g., 'birthday')
-    Returns:
-        List[dict]: A list of image info dictionaries matching the type
-    """
-
-    json_path = 'static/images/template_card_info.json'
-    if not os.path.exists(json_path):
-        return []
-    with open(json_path, 'r', encoding='utf-8') as f:
-        try:
-            data = json.load(f)
-        except Exception:
-            return []
-    return [item for item in data if item.get('card_type') == card_type]
-
-def get_random_template_by_type(card_type: str) -> Optional[dict]:
-    """
-    Get a random template image info dictionary by type from the template_card_info.json file.
-    Args:
-        card_type (str): The type name (e.g., 'birthday')
-    Returns:
-        dict: A random image info dictionary matching the type, or None if not found
-    """
-    templates = get_templates_by_type(card_type)
-    if not templates:
-        return None
-    return random.choice(templates)
-
-def get_random_font() -> str:
-    """
-    Randomly select a font file from static/fonts.
-
-    Returns:
-        str: The file path to the randomly selected font file.
-    """
-
-    fonts_dir = os.path.join("static", "fonts")
-    files = [f for f in os.listdir(fonts_dir) if f.endswith(".ttf") or f.endswith(".otf")]
-    if not files:
-        raise FileNotFoundError("No font files found in static/fonts/")
-    return os.path.join(fonts_dir, random.choice(files))

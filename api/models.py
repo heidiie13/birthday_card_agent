@@ -1,30 +1,64 @@
+from pydantic import BaseModel, Field, field_validator
 from typing import Optional
+
 from enum import Enum
-from pydantic import BaseModel
 
-class CardType(str, Enum):
-    birthday = "birthday"
-    graduation = "graduation"
 
-class GenerateRequest(BaseModel):
-    greeting_text_instructions: str
-    background_path: Optional[str] = None
-    foreground_path: Optional[str] = None
-    merged_image_path: Optional[str] = None
+class MergePosition(Enum):
+    TOP = 'top'
+    BOTTOM = 'bottom'
+    LEFT = 'left'
+    RIGHT = 'right'
 
 class BackgroundResponse(BaseModel):
     background_url: str
     background_path: str
 
-class GenerateResponse(BaseModel):
-    card_url: str
-
 class TemplateResponse(BaseModel):
     background_path: str
     foreground_path: str
     merged_image_path: str
-    aspect_ratio: Optional[float] = None
-    merge_position: Optional[str] = None
-    merge_margin_ratio: Optional[float] = None
-    merge_foreground_ratio: Optional[float] = None
+    aspect_ratio: float
+    merge_position: str
+    merge_margin_ratio: float
+    merge_foreground_ratio: float
     merged_image_url: str
+    
+class MergedImage(BaseModel):
+    background_path: str
+    foreground_path: str
+    merged_image_path: str
+    aspect_ratio: float
+    merge_position: MergePosition
+    merge_margin_ratio: float
+    merge_foreground_ratio: float
+
+    @field_validator('aspect_ratio')
+    def validate_aspect_ratio(cls, v):
+        if v < 0.1 or v > 100:
+            raise ValueError('aspect_ratio must be in range (0.1, 100)')
+        return v
+
+    @field_validator('merge_margin_ratio')
+    def validate_merge_margin_ratio(cls, v):
+        if v < 0 or v > 1:
+            raise ValueError('merge_margin_ratio must be in range (0, 1)')
+        return v
+
+    @field_validator('merge_foreground_ratio')
+    def validate_merge_foreground_ratio(cls, v):
+        if v < 0 or v > 1:
+            raise ValueError('merge_foreground_ratio must be in range (0, 1)')
+        return v
+
+class MergedImageResponse(MergedImage):
+    merged_image_url: str
+
+class GenerateRequest(MergedImage):
+    greeting_text_instructions: Optional[str] = None
+
+class GenerateResponse(BaseModel):
+    image_url: str
+    background_path: str
+    foreground_path: str
+    merged_image_path: str

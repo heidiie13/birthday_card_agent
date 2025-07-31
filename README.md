@@ -1,4 +1,4 @@
-# birthday_card_generator
+# card_generator
 
 1. Setup environment variables:
 ```sh

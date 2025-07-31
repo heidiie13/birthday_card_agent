@@ -8,9 +8,15 @@ from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
 from langchain_core.runnables import Runnable
 from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
-from .tools import merge_foreground_background, add_text_to_image, get_random_font, get_dominant_color
-from .prompt import system_prompt, user_prompt_template
-from .state import AgentState
+from .tools import (merge_foreground_background,
+                    add_text_to_image, 
+                    get_random_font,
+                    get_dominant_color,
+                    get_random_template_by_type
+                    )
+
+from .prompt import system_prompt, user_prompt_template, system_color_prompt, dominant_color_prompt_template
+from .state import State
 
 load_dotenv()
 logger = logging.getLogger(__name__)
@@ -39,16 +45,18 @@ def extract_json(text):
             return None
     return None
 
-def dominant_color_node(state: AgentState) -> AgentState:
+def dominant_color_node(state: State) -> State:
     """Extract dominant color from the background image."""
     bg_path = state.background_path
+    if not bg_path:
+        logger.warning("No background_path provided for dominant color extraction.")
+        return state
     color = get_dominant_color(bg_path)
     state.dominant_color = color
     logger.info(f"Dominant color: {color}")
-    
     return state
 
-def llm_node(state: AgentState) -> AgentState:
+def llm_node(state: State) -> State:
     now = datetime.now().strftime("%d/%m/%Y")
     llm = _get_model()
     user_prompt = user_prompt_template.format(**state.model_dump())
@@ -64,24 +72,63 @@ def llm_node(state: AgentState) -> AgentState:
         parsed = extract_json(response.content)
 
         logger.info(f"Response from LLM: {parsed}")
+        state.messages.append(AIMessage(content=response.content))
+        state.title = parsed.get("title")
+        state.greeting_text = parsed.get("greeting_text")
+        state.card_type = parsed.get("card_type")
     except Exception as e:
         logger.error(f"Error creating messages: {e}")
         return state
 
-    state.messages.append(AIMessage(content=response.content))
-    state.greeting_text = parsed.get("greeting_text")
-    state.font_color = parsed.get("font_color")
-    state.title = parsed.get("title")
     
     return state
 
-def merge_node(state: AgentState) -> AgentState:
-    """Process merging foreground and background images with updated state."""
-    # Set default values
-    # state.font_size = 70
-    # state.merge_margin_ratio = 0.05
+def route_random_template(state: State) -> State:
+    """Route to a random template based on card type."""
+    if state.foreground_path and state.background_path:
+        return "dominant_color"
+    
+    return "random_template"
 
-    # Determine text position based on merge position
+def random_template_node(state: State) -> State:
+    """Select a random template for the card."""
+    template = get_random_template_by_type(state.card_type)
+    if not template:
+        logger.warning(f"No template found for card_type: {state.card_type}")
+        return state
+    state.foreground_path = template.get("foreground_path")
+    state.background_path = template.get("background_path")
+
+    logger.info(f"Foreground path: {state.foreground_path}")
+    return state
+    
+def font_color_node(state: State) -> State:
+    """Select font color using LLM based on dominant_color and card_type."""
+    llm = _get_model()
+    user_prompt = dominant_color_prompt_template.format(**state.model_dump())
+    sys_prompt = system_color_prompt.format()
+    try:
+        messages = [
+            SystemMessage(content=sys_prompt),
+            HumanMessage(content=user_prompt)
+        ]
+
+        response = llm.invoke(messages)
+        parsed = extract_json(response.content)
+        state.messages.append(AIMessage(content=response.content))
+        state.font_color = parsed.get("font_color")
+        logger.info(f"Response from LLM: {parsed}")
+    except Exception as e:
+        logger.error(f"Error in font_color_node: {e}")
+
+    return state
+
+def merge_node(state: State) -> State:
+    """Process merging foreground and background images with updated state."""
+    if not state.foreground_path or not state.background_path:
+        logger.warning(f"Missing foreground or background for merge: {state.foreground_path}, {state.background_path}")
+        return state
+
     position_map = {
         "left": "right",
         "right": "left",
@@ -90,16 +137,14 @@ def merge_node(state: AgentState) -> AgentState:
     }
     state.text_position = position_map.get(state.merge_position)
 
-    # greeting_words = len(state.greeting_text.split()) if state.greeting_text else 0
+    greeting_words = len(state.greeting_text.split()) if state.greeting_text else 0
 
-    # # Set merge_foreground_ratio based on aspect ratio and greeting length
-    # if greeting_words < 30:
-    #     state.merge_foreground_ratio = 2/3
-    # elif greeting_words < 50:
-    #     state.merge_foreground_ratio = 1/2
-    # else:
-    #     state.merge_foreground_ratio = 1/3
-    #     state.font_size = 60
+    # Set merge_foreground_ratio based on aspect ratio and greeting length
+    if greeting_words < 45:
+        state.merge_foreground_ratio = 1/2
+    else:
+        state.merge_foreground_ratio = 1/3
+        state.font_size = 65
 
     state.text_ratio = 1 - state.merge_foreground_ratio
 
@@ -119,7 +164,7 @@ def merge_node(state: AgentState) -> AgentState:
 
     return state
 
-def add_text_node(state: AgentState) -> AgentState:
+def add_text_node(state: State) -> State:
     image_path = state.merged_image_path
     state.card_path = image_path
     logger.info(f"Card generated at: {state.card_path}")

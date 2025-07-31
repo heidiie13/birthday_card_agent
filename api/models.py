@@ -3,9 +3,9 @@ from pydantic import BaseModel
 
 class GenerateRequest(BaseModel):
     greeting_text_instructions: str
-    background_path: str
-    foreground_path: str
-    merged_image_path: str
+    background_path: Optional[str] = None
+    foreground_path: Optional[str] = None
+    merged_image_path: Optional[str] = None
 
 class BackgroundResponse(BaseModel):
     background_url: str

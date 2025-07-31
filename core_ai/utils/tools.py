@@ -294,13 +294,13 @@ def _get_wrapped(text, font, max_width):
         lines.append(line)
     return '\n'.join(lines)
 
-def get_templates_by_style(card_style: str):
+def get_templates_by_type(card_type: str):
     """
-    Get a list of image info dictionaries by style from the template_card_info.json file.
+    Get a list of image info dictionaries by type from the template_card_info.json file.
     Args:
-        card_style (str): The style name (e.g., 'birthday')
+        card_type (str): The type name (e.g., 'birthday')
     Returns:
-        List[dict]: A list of image info dictionaries matching the style
+        List[dict]: A list of image info dictionaries matching the type
     """
 
     json_path = 'static/images/template_card_info.json'
@@ -311,8 +311,21 @@ def get_templates_by_style(card_style: str):
             data = json.load(f)
         except Exception:
             return []
-    return [item for item in data if item.get('card_style') == card_style]
-    
+    return [item for item in data if item.get('card_type') == card_type]
+
+def get_random_template_by_type(card_type: str) -> Optional[dict]:
+    """
+    Get a random template image info dictionary by type from the template_card_info.json file.
+    Args:
+        card_type (str): The type name (e.g., 'birthday')
+    Returns:
+        dict: A random image info dictionary matching the type, or None if not found
+    """
+    templates = get_templates_by_type(card_type)
+    if not templates:
+        return None
+    return random.choice(templates)
+
 def get_random_font() -> str:
     """
     Randomly select a font file from static/fonts.

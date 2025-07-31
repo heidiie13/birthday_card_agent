@@ -2,7 +2,7 @@ from typing import Optional, List
 from langchain_core.messages import AnyMessage
 from pydantic import BaseModel
 
-class AgentState(BaseModel):
+class State(BaseModel):
     # Conversation and feedback
     messages: List[AnyMessage] = []
 
@@ -14,6 +14,7 @@ class AgentState(BaseModel):
     merged_image_path: Optional[str] = None
     dominant_color: Optional[str] = None
     card_path: Optional[str] = None
+    card_type: Optional[str] = None
     
     # Text info
     greeting_text: Optional[str] = None
@@ -26,7 +27,7 @@ class AgentState(BaseModel):
 
     # Merge params
     merge_position: str = "top"
-    merge_margin_ratio: float = 0.05
+    merge_margin_ratio: float = 0.02
     aspect_ratio: float = 3/4
     merge_foreground_ratio: float = 1/2
 

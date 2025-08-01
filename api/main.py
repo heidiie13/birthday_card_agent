@@ -18,7 +18,7 @@ from core_ai.utils.tools import (
     get_random_background,
     get_random_foreground,
     merge_foreground_background,
-    apply_gaussian_blur_edges,
+    apply_gradient_mask_edges,
     cleanup_merged_folder,
 )
 
@@ -193,10 +193,16 @@ def get_backgrounds(request: Request, n: int = 8):
 async def upload_template(request = Request, 
                        file: UploadFile = File(...),
                        merge_aspect_ratio: float = 3/4,
-                       background_path: str = None):
+                       background_path: str = None,
+                       gradient_region: int = 400,
+                       gradient_smoothness: float = 0.6,
+                       gradient_top: bool = True,
+                       gradient_bottom: bool = True,
+                       gradient_left: bool = True,
+                       gradient_right: bool = True):
     """
     Upload a foreground image and merge it with a selected or random background.
-    Automatically removes background and crops to bounding box.
+    Automatically applies gradient mask to edges.
     """
     fg_dir = os.path.join(STATIC_DIR, "images", "foregrounds", "uploads")
     os.makedirs(fg_dir, exist_ok=True)
@@ -215,16 +221,16 @@ async def upload_template(request = Request,
     fg_path = os.path.join(fg_dir, processed_name)
 
     try:
-        # Apply gaussian blur to edges
-        processed_path = apply_gaussian_blur_edges(
+        # Apply gradient mask to edges
+        processed_path = apply_gradient_mask_edges(
             original_path, 
             fg_path,
-            blur_region=150,
-            blur_radius=10,
-            blur_top=True,
-            blur_bottom=True,
-            blur_left=True,
-            blur_right=True
+            gradient_region=gradient_region,
+            gradient_smoothness=gradient_smoothness,
+            gradient_top=gradient_top,
+            gradient_bottom=gradient_bottom,
+            gradient_left=gradient_left,
+            gradient_right=gradient_right
         )
         
         # Verify the processed file exists and has content

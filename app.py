@@ -115,7 +115,14 @@ def main():
             files = {"file": uploaded_foreground}
             params = {
                 "merge_aspect_ratio": 3/4,
-                "background_path": selected_background["path"]
+                "background_path": selected_background["path"],
+                # Gradient parameters từ AgentState default values
+                "gradient_region": 400,
+                "gradient_smoothness": 0.6,
+                "gradient_top": False,
+                "gradient_bottom": True,
+                "gradient_left": False,
+                "gradient_right": False
             }
                 
             merge_resp = requests.post(f"{API_URL}/upload-template", files=files, params=params)

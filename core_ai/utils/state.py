@@ -25,7 +25,7 @@ class AgentState(BaseModel):
 
     # Merge params
     merge_position: str = "top"
-    merge_margin_ratio: float = 0.05
+    merge_margin_ratio: float = 0
     aspect_ratio: float = 3/4
     merge_foreground_ratio: float = 1/2
 

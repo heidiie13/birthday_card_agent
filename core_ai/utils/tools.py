@@ -55,7 +55,7 @@ def merge_foreground_background(
     background_path: str,
     output_path: str,
     merge_position: str = 'top',
-    margin_ratio: float = 0.05,
+    margin_ratio: float = 0,
     aspect_ratio: float = 3/4,
     foreground_ratio: float = 1/2
 ) -> dict:
@@ -321,121 +321,90 @@ def get_current_time() -> str:
     return datetime.now().strftime("%d/%m/%Y")
 
 
-from PIL import Image, ImageFilter
+from PIL import Image
 
-def create_alpha_mask_with_blurred_edges(fg_size, blur_region, blur_radius, blur_top=True, blur_bottom=True, blur_left=True, blur_right=True):
+def create_alpha_mask_with_gradient_edges(fg_size, gradient_region, gradient_smoothness,
+                                         gradient_top=False, gradient_bottom=True,
+                                         gradient_left=False, gradient_right=False):
     """
-    Tạo alpha mask với các cạnh làm mờ bằng Gaussian blur.
+    Tạo mask với gradient edges thay vì blur, giữ nguyên phần giữa
+    
     Args:
-        fg_size: Tuple (width, height) của ảnh
-        blur_region: Kích thước vùng blur ở mỗi cạnh (pixels)
-        blur_radius: Độ mạnh của Gaussian blur
-        blur_top, blur_bottom, blur_left, blur_right: Có áp dụng blur cho từng cạnh không
-    Returns:
-        PIL.Image: Alpha mask đã được blur
+        fg_size: (width, height) của ảnh
+        gradient_region: Kích thước vùng gradient ở mỗi cạnh (pixels)
+        gradient_smoothness: Độ mềm mại của gradient (1.0 = linear, >1.0 = smooth curve)
+        gradient_top, gradient_bottom, gradient_left, gradient_right: Có áp dụng gradient cho từng cạnh không
     """
     width, height = fg_size
-    
-    # Tạo mask mặc định: toàn bộ ảnh opaque (255)
-    alpha = Image.new('L', (width, height), 255)
-    data = alpha.load()  # Truy cập từng pixel
+    alpha = Image.new('L', (width, height), 255)  # Bắt đầu với mask hoàn toàn opaque
+    data = alpha.load()
     
     for y in range(height):
         for x in range(width):
-            min_alpha = 255  # Giá trị alpha tối đa
+            # Tính khoảng cách đến từng cạnh cần gradient
+            distances = []
             
-            # Xử lý cạnh trên
-            if blur_top and y < blur_region:
-                ratio = y / blur_region
-                current = int(ratio * 255)
-                if current < min_alpha:
-                    min_alpha = current
+            if gradient_top:
+                distances.append(y)
+            if gradient_bottom:
+                distances.append(height - y - 1)
+            if gradient_left:
+                distances.append(x)
+            if gradient_right:
+                distances.append(width - x - 1)
             
-            # Xử lý cạnh dưới
-            if blur_bottom and y >= height - blur_region:
-                ratio = (height - y - 1) / blur_region
-                current = int(ratio * 255)
-                if current < min_alpha:
-                    min_alpha = current
+            # Nếu không có cạnh nào được chọn, giữ nguyên opaque
+            if not distances:
+                data[x, y] = 255
+                continue
+                
+            # Lấy khoảng cách ngắn nhất đến các cạnh được chọn
+            min_distance = min(distances)
             
-            # Xử lý cạnh trái
-            if blur_left and x < blur_region:
-                ratio = x / blur_region
-                current = int(ratio * 255)
-                if current < min_alpha:
-                    min_alpha = current
-            
-            # Xử lý cạnh phải
-            if blur_right and x >= width - blur_region:
-                ratio = (width - x - 1) / blur_region
-                current = int(ratio * 255)
-                if current < min_alpha:
-                    min_alpha = current
-            
-            # Xử lý các góc (đảm bảo chuyển tiếp trơn tru)
-            if blur_top and blur_left and x < blur_region and y < blur_region:
-                corner_ratio = max(x / blur_region, y / blur_region)
-                current = int(corner_ratio * 255)
-                if current < min_alpha:
-                    min_alpha = current
-            
-            if blur_top and blur_right and x >= width - blur_region and y < blur_region:
-                corner_ratio = max((width - x - 1) / blur_region, y / blur_region)
-                current = int(corner_ratio * 255)
-                if current < min_alpha:
-                    min_alpha = current
-            
-            if blur_bottom and blur_left and x < blur_region and y >= height - blur_region:
-                corner_ratio = max(x / blur_region, (height - y - 1) / blur_region)
-                current = int(corner_ratio * 255)
-                if current < min_alpha:
-                    min_alpha = current
-            
-            if blur_bottom and blur_right and x >= width - blur_region and y >= height - blur_region:
-                corner_ratio = max((width - x - 1) / blur_region, (height - y - 1) / blur_region)
-                current = int(corner_ratio * 255)
-                if current < min_alpha:
-                    min_alpha = current
-            
-            # Cập nhật giá trị alpha nhỏ nhất (mờ nhất) cho pixel
-            data[x, y] = min_alpha
+            # Áp dụng gradient từ 0 (mép) → 255 (giữa)
+            if min_distance <= gradient_region:
+                # Sử dụng công thức gradient có thể điều chỉnh độ mềm mại
+                ratio = min_distance / gradient_region
+                # Áp dụng curve để làm mềm gradient
+                smooth_ratio = pow(ratio, 1.0 / gradient_smoothness)
+                alpha_value = int(smooth_ratio * 255)
+                data[x, y] = alpha_value
+            else:
+                data[x, y] = 255  # Opaque hoàn toàn ở giữa
     
-    # Áp dụng Gaussian blur mạnh hơn
-    blurred = alpha.filter(ImageFilter.GaussianBlur(radius=blur_radius))
-    
-    return blurred
+    return alpha
 
 
-def apply_gaussian_blur_edges(input_path: str, output_path: str, blur_region, blur_radius, blur_top=True, blur_bottom=True, blur_left=True, blur_right=True) -> str:
+def apply_gradient_mask_edges(input_path: str, output_path: str, gradient_region,
+                             gradient_smoothness, gradient_top=True, gradient_bottom=True,
+                             gradient_left=True, gradient_right=True) -> str:
     """
-    Áp dụng Gaussian blur viền cho ảnh đã upload.
+    Áp dụng gradient mask viền cho ảnh đã upload thay vì Gaussian blur.
     
     Args:
         input_path (str): Path to the input image
         output_path (str): Path to save the processed image
-        blur_region (int): Kích thước vùng blur ở mỗi cạnh (pixels)
-        blur_radius (float): Độ mạnh của Gaussian blur
-        blur_top, blur_bottom, blur_left, blur_right (bool): Có áp dụng blur cho từng cạnh không
+        gradient_region (int): Kích thước vùng gradient ở mỗi cạnh (pixels)
+        gradient_smoothness (float): Độ mềm mại của gradient (1.0 = linear, >1.0 = smooth curve)
+        gradient_top, gradient_bottom, gradient_left, gradient_right (bool): Có áp dụng gradient cho từng cạnh không
         
     Returns:
         str: Path to the processed image
     """
     
     try:
-        from PIL import Image
-        
         # Load the input image
         img = Image.open(input_path).convert('RGBA')
         
-        # Tạo alpha mask với blurred edges
-        alpha_mask = create_alpha_mask_with_blurred_edges(
-            img.size, 
-            blur_region=blur_region,
-            blur_radius=blur_radius,
-            blur_top=blur_top,
-            blur_bottom=blur_bottom,
-            blur_left=blur_left,
-            blur_right=blur_right
+        # Tạo alpha mask với gradient edges
+        alpha_mask = create_alpha_mask_with_gradient_edges(
+            img.size,
+            gradient_region=gradient_region,
+            gradient_smoothness=gradient_smoothness,
+            gradient_top=gradient_top,
+            gradient_bottom=gradient_bottom,
+            gradient_left=gradient_left,
+            gradient_right=gradient_right
         )
         
         # Áp dụng alpha mask lên ảnh

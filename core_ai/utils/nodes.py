@@ -147,7 +147,7 @@ def merge_node(state: AgentState) -> AgentState:
     """Process merging foreground and background images with updated state."""
     # Set default values
     state.font_size = 70
-    state.merge_margin_ratio = 0.05
+    state.merge_margin_ratio = 0
 
     # Always use fixed positions: foreground TOP, text BOTTOM
     state.text_position = "bottom"

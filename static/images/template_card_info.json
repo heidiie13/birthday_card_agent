@@ -40,9 +40,19 @@
     "card_type": "birthday"
   },
   {
+    "foreground_path": "static/images/foregrounds/66d7f4ddac820.png",
+    "background_path": "static/images/backgrounds/chucs1.png",
+    "merged_image_path": "static/images/card_types/graduation/416ef39d-39cf-43b9-aa0b-893704510c4e.png",
+    "aspect_ratio": 0.75,
+    "merge_position": "top",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "graduation"
+  },
+  {
     "foreground_path": "static/images/foregrounds/1623250590571-unnamed.png",
-    "background_path": "static/images/backgrounds/back_5.webp",
-    "merged_image_path": "static/images/card_types/graduation/2a76ac23-19cc-414a-abee-40c911c63ff9.png",
+    "background_path": "static/images/backgrounds/back_25.webp",
+    "merged_image_path": "static/images/card_types/graduation/3eccd9ec-19e1-4cd9-86af-7c264eb7163f.png",
     "aspect_ratio": 0.75,
     "merge_position": "top",
     "merge_margin_ratio": 0.05,
@@ -51,18 +61,8 @@
   },
   {
     "foreground_path": "static/images/foregrounds/fa9ce4cb2f978b4a07d38069e74e8c9e-happy-graduation-ribbon-sticker.webp",
-    "background_path": "static/images/backgrounds/back_19.jpeg",
-    "merged_image_path": "static/images/card_types/graduation/e51d78e0-7de8-4023-86b0-0deff03b8b68.png",
-    "aspect_ratio": 0.75,
-    "merge_position": "top",
-    "merge_margin_ratio": 0.05,
-    "merge_foreground_ratio": 0.5,
-    "card_type": "graduation"
-  },
-  {
-    "foreground_path": "static/images/foregrounds/66d7f4ddac820.png",
-    "background_path": "static/images/backgrounds/back_17.jpeg",
-    "merged_image_path": "static/images/card_types/graduation/5405ad2d-c1fb-4eeb-8eaf-4119a44987e1.png",
+    "background_path": "static/images/backgrounds/back_10.webp",
+    "merged_image_path": "static/images/card_types/graduation/c1a7de5e-48a0-4306-8e27-cacbbcb1b1d4.png",
     "aspect_ratio": 0.75,
     "merge_position": "top",
     "merge_margin_ratio": 0.05,
@@ -71,12 +71,52 @@
   },
   {
     "foreground_path": "static/images/foregrounds/happy-graduation-class-senior_10591977.png",
-    "background_path": "static/images/backgrounds/back_18.jpeg",
-    "merged_image_path": "static/images/card_types/graduation/cb57a7bd-0b22-48af-a51a-a8092f5203d0.png",
+    "background_path": "static/images/backgrounds/chucs2.png",
+    "merged_image_path": "static/images/card_types/graduation/132490ea-c6a8-45f1-a311-678a3f9ccb09.png",
     "aspect_ratio": 0.75,
     "merge_position": "top",
     "merge_margin_ratio": 0.05,
     "merge_foreground_ratio": 0.5,
     "card_type": "graduation"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/wedding2.png",
+    "background_path": "static/images/backgrounds/back_5.webp",
+    "merged_image_path": "static/images/card_types/wedding/e1be0ac9-dab2-4865-b483-0b4643da8915.png",
+    "aspect_ratio": 0.75,
+    "merge_position": "top",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "wedding"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/wedding3.png",
+    "background_path": "static/images/backgrounds/back_8.jpg",
+    "merged_image_path": "static/images/card_types/wedding/9aac7aac-8a13-4ca1-ad36-1916851e0352.png",
+    "aspect_ratio": 0.75,
+    "merge_position": "top",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "wedding"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/wedding1.png",
+    "background_path": "static/images/backgrounds/back_16.jpg",
+    "merged_image_path": "static/images/card_types/wedding/00e88e7c-0154-4857-9e5b-b0ea73895016.png",
+    "aspect_ratio": 0.75,
+    "merge_position": "top",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "wedding"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/wedding4.png",
+    "background_path": "static/images/backgrounds/back_27.jpg",
+    "merged_image_path": "static/images/card_types/wedding/1f372a31-4377-4b9b-8f10-cbb747cf3769.png",
+    "aspect_ratio": 0.75,
+    "merge_position": "top",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "wedding"
   }
 ]

@@ -36,6 +36,13 @@ def add_card_info_to_json(foreground_path: str, background_path: str, json_path:
     else:
         data = []
 
+    for item in data:
+        if (
+            item.get("foreground_path") == foreground_path and
+            item.get("background_path") == background_path
+        ):
+            return
+
     data.append(img)
 
     with open(json_file, "w", encoding="utf-8") as f:
@@ -63,3 +70,17 @@ def process_txt_file(txt_path: str, json_path: str, card_type: str):
                 json_path=json_path,
                 card_type=card_type
             )
+
+if __name__ == "__main__":
+    # Example usage
+    process_txt_file(
+        txt_path="graduation.txt",
+        json_path="static/images/template_card_info.json",
+        card_type="graduation"
+    )
+    
+    process_txt_file(
+        txt_path="wedding.txt",
+        json_path="static/images/template_card_info.json",
+        card_type="wedding"
+    )

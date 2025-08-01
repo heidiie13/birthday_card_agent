@@ -9,6 +9,7 @@ from langchain_openai import ChatOpenAI
 from langchain_core.runnables import Runnable
 from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
 from .tools import (merge_foreground_background,
+                    merge_user_upload_with_gradient,
                     add_text_to_image, 
                     get_random_font,
                     get_dominant_color,
@@ -70,7 +71,10 @@ def llm_node(state: State) -> State:
 
         response = llm.invoke(messages)
         parsed = extract_json(response.content)
-
+        if not parsed:
+            logger.error("Failed to parse JSON from LLM response.")
+            logger.error(f"LLM response content: {response.content}")
+            
         logger.info(f"Response from LLM: {parsed}")
         state.messages.append(AIMessage(content=response.content))
         state.title = parsed.get("title")
@@ -85,7 +89,7 @@ def llm_node(state: State) -> State:
 
 def route_random_template(state: State) -> State:
     """Route to a random template based on card type."""
-    if state.foreground_path and state.background_path:
+    if state.foreground_path and state.background_path and state.merged_image_path:
         return "dominant_color"
     
     return "random_template"
@@ -145,24 +149,39 @@ def merge_node(state: State) -> State:
         state.merge_foreground_ratio = 1/2
     else:
         state.merge_foreground_ratio = 1/3
-        state.font_size = 65
 
     state.text_ratio = 1 - state.merge_foreground_ratio + 0.1
 
-    # Perform merge
+    # Generate output path
     output_path = f"static/images/cards/{uuid.uuid4().hex}.png"
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
-    merge_foreground_background(
-        foreground_path=state.foreground_path,
-        background_path=state.background_path,
-        output_path=output_path,
-        merge_position=state.merge_position,
-        margin_ratio=state.merge_margin_ratio,
-        aspect_ratio=state.aspect_ratio,
-        foreground_ratio=state.merge_foreground_ratio,
-    )
+    
+    # Check if this is a user upload (no merged_image_path provided)
+    if not state.merged_image_path:
+        # User upload - use gradient merge
+        logger.info("Using gradient merge for user upload")
+        merge_user_upload_with_gradient(
+            foreground_path=state.foreground_path,
+            background_path=state.background_path,
+            output_path=output_path,
+            aspect_ratio=state.aspect_ratio,
+            foreground_ratio=state.merge_foreground_ratio,
+        )
+        state.text_ratio = 1 - state.merge_foreground_ratio  # Use remaining space for text
+    else:
+    # Template selection - use normal merge
+        logger.info("Using normal merge for template")
+        merge_foreground_background(
+            foreground_path=state.foreground_path,
+            background_path=state.background_path,
+            output_path=output_path,
+            merge_position=state.merge_position,
+            margin_ratio=state.merge_margin_ratio,
+            aspect_ratio=state.aspect_ratio,
+            foreground_ratio=state.merge_foreground_ratio,
+        )
+    
     state.merged_image_path = output_path
-
     return state
 
 def add_text_node(state: State) -> State:
@@ -170,10 +189,15 @@ def add_text_node(state: State) -> State:
     state.card_path = image_path
     logger.info(f"Card generated at: {state.card_path}")
 
-    font_path = get_random_font()
-    title_font_path = get_random_font()
+    font_path = get_random_font("static/fonts/text_fonts")
+    title_font_path = get_random_font("static/fonts/title_fonts")
 
     logger.info(f"Font path: {font_path}")
+    logger.info(f"Title font path: {title_font_path}")
+
+    if state.merge_foreground_ratio < 1/2:
+        state.font_size = 70
+
     try:
         add_text_to_image(
             image_path=image_path,

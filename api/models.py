@@ -5,6 +5,7 @@ from pydantic import BaseModel
 class CardType(str, Enum):
     birthday = "birthday"
     graduation = "graduation"
+    wedding = "wedding"
 
 class GenerateRequest(BaseModel):
     greeting_text_instructions: str

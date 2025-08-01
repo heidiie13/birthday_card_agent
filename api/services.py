@@ -63,15 +63,20 @@ def get_backgrounds_service(req: Request, page: int = 1, page_size: int = 10) ->
     return result
 
 def generate_card_service(req: GenerateRequest, request: Request) -> GenerateResponse:
-    greeting_text_instructions = {
+    input = {
         "greeting_text_instructions": req.greeting_text_instructions,
     }
-    if req.background_path and req.foreground_path and req.merged_image_path:
-        greeting_text_instructions["background_path"] = req.background_path
-        greeting_text_instructions["foreground_path"] = req.foreground_path
-        greeting_text_instructions["merged_image_path"] = req.merged_image_path
+    
+    # Add paths if provided - support both template mode and user upload mode
+    if req.background_path:
+        input["background_path"] = req.background_path
+    if req.foreground_path:
+        input["foreground_path"] = req.foreground_path
+    if req.merged_image_path:
+        input["merged_image_path"] = req.merged_image_path
+        
     try:
-        result = graph.invoke(greeting_text_instructions)
+        result = graph.invoke(input)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     card_path = result.get("card_path")

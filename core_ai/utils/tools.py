@@ -3,7 +3,7 @@ import os
 from collections import Counter
 import random
 from typing import Optional
-from PIL import ImageDraw, ImageFont, Image, ImageDraw, ImageFont
+from PIL import ImageDraw, ImageFont, Image, ImageDraw, ImageFont, ImageChops
 from pilmoji import Pilmoji
 from pilmoji.source import GoogleEmojiSource
 
@@ -16,6 +16,97 @@ def get_dominant_color(image_path: str, resize=50) -> str:
     pixels = list(img.getdata())
     most_common = Counter(pixels).most_common(1)[0][0]
     return '#{:02x}{:02x}{:02x}'.format(*most_common)
+
+def merge_user_upload_with_gradient(
+    foreground_path: str,
+    background_path: str,
+    output_path: str,
+    aspect_ratio: float = 3/4,
+    foreground_ratio: float = 1/2,
+    logo_path: str = "static/images/Logo-MISA.webp",
+    logo_scale: float = 0.12,
+) -> dict:
+    if not os.path.exists(background_path):
+        raise FileNotFoundError(f"Background file not found: {background_path}")
+    if not os.path.exists(foreground_path):
+        raise FileNotFoundError(f"Foreground file not found: {foreground_path}")
+    
+    # Standard canvas
+    standard_height = 1600
+    standard_width = int(standard_height * aspect_ratio)
+    
+    # Load images
+    bg = Image.open(background_path).convert('RGB').resize((standard_width, standard_height), Image.LANCZOS)
+    fg = Image.open(foreground_path).convert('RGBA')
+
+    # Resize FG to match canvas height
+    fg_aspect = fg.width / fg.height
+    fg_height = standard_height
+    fg_width = int(fg_aspect * fg_height)
+    fg = fg.resize((fg_width, fg_height), Image.LANCZOS)
+
+    # Center FG horizontally
+    fg_x = (standard_width - fg_width) // 2
+    fg_y = 0
+
+    # --- Create upward fading mask: from background → foreground ---
+    gradient = Image.new('L', (1, standard_height), color=0x00)  # start fully transparent
+    blend_end_y = int(standard_height * foreground_ratio)
+
+    for y in range(standard_height):
+        if y < blend_end_y:
+            # Tính alpha theo tiến độ trong phần foreground rõ (dưới blend_end_y)
+            progress = y / blend_end_y
+            alpha = int(255 * progress)  # từ 0 → 255
+        else:
+            alpha = 255  # foreground rõ hoàn toàn
+        gradient.putpixel((0, y), alpha)
+
+    # Đảo alpha: foreground cần hiện rõ ở trên
+    inverted_gradient = Image.eval(gradient, lambda px: 255 - px)
+    alpha_mask = inverted_gradient.resize((fg_width, standard_height))
+
+    # Apply to foreground
+    r, g, b, a = fg.split()
+    a = ImageChops.multiply(a, alpha_mask)
+    fg = Image.merge('RGBA', (r, g, b, a))
+
+    # Compose result
+    result = bg.copy()
+    result.paste(fg, (fg_x, fg_y), fg)
+
+    # Add logo if exists
+    if logo_path and os.path.exists(logo_path):
+        logo = Image.open(logo_path).convert("RGBA")
+        logo_max_w = int(standard_width * logo_scale)
+        logo_ratio = logo.width / logo.height
+        logo_w = logo_max_w
+        logo_h = int(logo_w / logo_ratio)
+        logo = logo.resize((logo_w, logo_h), Image.LANCZOS)
+
+        margin = int(min(standard_width, standard_height) * 0.05)
+        logo_x = standard_width - logo_w - margin
+        logo_y = standard_height - logo_h - margin
+        result.paste(logo, (logo_x, logo_y), logo)
+        logo.close()
+
+    # Save
+    result.save(output_path)
+    result.close()
+    fg.close()
+    bg.close()
+
+    return {
+        "foreground_path": foreground_path,
+        "background_path": background_path,
+        "merged_image_path": output_path,
+        "aspect_ratio": aspect_ratio,
+        "merge_position": "bottom-up",  # đúng hơn
+        "merge_margin_ratio": 0.05,
+        "merge_foreground_ratio": foreground_ratio,
+        "is_user_upload": True
+    }
+
 
 def merge_foreground_background(
     foreground_path: str,
@@ -349,16 +440,17 @@ def get_random_template_by_type(card_type: str) -> Optional[dict]:
         return None
     return random.choice(templates)
 
-def get_random_font() -> str:
+def get_random_font(fonts_dir: str = "static/fonts/text_fonts") -> str:
     """
-    Randomly select a font file from static/fonts.
+    Randomly select a font file from the specified directory.
+
+    Args:
+        fonts_dir (str): The directory path to search for font files.
 
     Returns:
         str: The file path to the randomly selected font file.
     """
-
-    fonts_dir = os.path.join("static", "fonts")
     files = [f for f in os.listdir(fonts_dir) if f.endswith(".ttf") or f.endswith(".otf")]
     if not files:
-        raise FileNotFoundError("No font files found in static/fonts/")
+        raise FileNotFoundError(f"No font files found in {fonts_dir}")
     return os.path.join(fonts_dir, random.choice(files))

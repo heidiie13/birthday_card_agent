@@ -9,7 +9,7 @@ from langchain_openai import ChatOpenAI
 from langchain_core.runnables import Runnable
 from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
 from .tools import (merge_foreground_background,
-                    merge_user_upload_with_gradient,
+                    merge_foreground_background_with_blending,
                     add_text_to_image, 
                     get_random_font,
                     get_dominant_color,
@@ -89,7 +89,7 @@ def llm_node(state: State) -> State:
 
 def route_random_template(state: State) -> State:
     """Route to a random template based on card type."""
-    if state.foreground_path and state.background_path and state.merged_image_path:
+    if state.foreground_path and state.background_path:
         return "dominant_color"
     
     return "random_template"
@@ -102,9 +102,11 @@ def random_template_node(state: State) -> State:
         return state
     state.foreground_path = template.get("foreground_path")
     state.background_path = template.get("background_path")
+    state.merged_image_path = template.get("merged_image_path")
 
     logger.info(f"Foreground path: {state.foreground_path}")
     logger.info(f"Background path: {state.background_path}")
+    logger.info(f"Merged image path: {state.merged_image_path}")
     return state
     
 def font_color_node(state: State) -> State:
@@ -140,7 +142,7 @@ def merge_node(state: State) -> State:
         "top": "bottom",
         "bottom": "top"
     }
-    state.text_position = position_map.get(state.merge_position)
+    
 
     greeting_words = len(state.greeting_text.split()) if state.greeting_text else 0
 
@@ -150,26 +152,32 @@ def merge_node(state: State) -> State:
     else:
         state.merge_foreground_ratio = 1/3
 
-    state.text_ratio = 1 - state.merge_foreground_ratio + 0.1
+    state.text_ratio = 1 - state.merge_foreground_ratio + 0.05
 
+    if state.aspect_ratio > 1:
+        state.merge_position = "right"
+        state.text_ratio = 1 - state.merge_foreground_ratio - 0.05
+        state.title_font_size = 140
+        
+    state.text_position = position_map.get(state.merge_position)
     # Generate output path
     output_path = f"static/images/cards/{uuid.uuid4().hex}.png"
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
     
     # Check if this is a user upload (no merged_image_path provided)
     if not state.merged_image_path:
-        # User upload - use gradient merge
-        logger.info("Using gradient merge for user upload")
-        merge_user_upload_with_gradient(
+        # User upload - use merge with blending
+        logger.info("Using merge with blending for user upload")
+        merge_foreground_background_with_blending(
             foreground_path=state.foreground_path,
             background_path=state.background_path,
             output_path=output_path,
             aspect_ratio=state.aspect_ratio,
             foreground_ratio=state.merge_foreground_ratio,
+            merge_position=state.merge_position,
         )
-        state.text_ratio = 1 - state.merge_foreground_ratio  # Use remaining space for text
     else:
-    # Template selection - use normal merge
+        # Template selection - use normal merge
         logger.info("Using normal merge for template")
         merge_foreground_background(
             foreground_path=state.foreground_path,

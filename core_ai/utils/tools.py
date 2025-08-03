@@ -17,94 +17,166 @@ def get_dominant_color(image_path: str, resize=50) -> str:
     most_common = Counter(pixels).most_common(1)[0][0]
     return '#{:02x}{:02x}{:02x}'.format(*most_common)
 
-def merge_user_upload_with_gradient(
+def merge_foreground_background_with_blending(
     foreground_path: str,
     background_path: str,
     output_path: str,
+    merge_position: str = 'top',
     aspect_ratio: float = 3/4,
     foreground_ratio: float = 1/2,
+    blend_ratio: float = 0.3,
     logo_path: str = "static/images/Logo-MISA.webp",
-    logo_scale: float = 0.12,
+    logo_scale: float = 0.03,
 ) -> dict:
+    """
+    Merge a foreground image onto a background image with blending effects.
+    
+    Args:
+        foreground_path (str): Path to the foreground image.
+        background_path (str): Path to the background image.
+        output_path (str): Path to save the merged image.
+        merge_position (str): Position to place the foreground image ('top', 'bottom', 'left', 'right').
+        margin_ratio (float): Margin ratio relative to the smaller dimension of the background.
+        aspect_ratio (float): Aspect ratio of the final image (width/height).
+        foreground_ratio (float): Ratio of the foreground image size relative to the background.
+        blend_ratio (float): Ratio for blending the foreground with the background.
+        logo_path (str): Path to the logo image to be added.
+        logo_scale (float): Scale factor for the logo relative to the final image size.
+    Returns:
+        dict: Information about the merged image including paths and parameters.
+    """
     if not os.path.exists(background_path):
         raise FileNotFoundError(f"Background file not found: {background_path}")
     if not os.path.exists(foreground_path):
         raise FileNotFoundError(f"Foreground file not found: {foreground_path}")
-    
-    # Standard canvas
+
     standard_height = 1600
     standard_width = int(standard_height * aspect_ratio)
-    
-    # Load images
-    bg = Image.open(background_path).convert('RGB').resize((standard_width, standard_height), Image.LANCZOS)
+
+    # Load and crop background
+    bg = Image.open(background_path).convert('RGB')
+    bg_w, bg_h = bg.size
+    if bg_w / bg_h > aspect_ratio:
+        new_w = int(bg_h * aspect_ratio)
+        left = (bg_w - new_w) // 2
+        bg = bg.crop((left, 0, left + new_w, bg_h))
+    else:
+        new_h = int(bg_w / aspect_ratio)
+        top = (bg_h - new_h) // 2
+        bg = bg.crop((0, top, bg_w, top + new_h))
+    bg = bg.resize((standard_width, standard_height), Image.LANCZOS)
+
+    # Load foreground
     fg = Image.open(foreground_path).convert('RGBA')
-
-    # Resize FG to match canvas height
     fg_aspect = fg.width / fg.height
-    fg_height = standard_height
-    fg_width = int(fg_aspect * fg_height)
-    fg = fg.resize((fg_width, fg_height), Image.LANCZOS)
 
-    # Center FG horizontally
-    fg_x = (standard_width - fg_width) // 2
-    fg_y = 0
+    if merge_position in ['top', 'bottom']:
+        fg_width = standard_width
+        fg_height = int(fg_width / fg_aspect)
+        fg = fg.resize((fg_width, fg_height), Image.LANCZOS)
+        fg_x = 0
+        fg_y = 0 if merge_position == 'top' else standard_height - fg_height
 
-    # --- Create upward fading mask: from background → foreground ---
-    gradient = Image.new('L', (1, standard_height), color=0x00)  # start fully transparent
-    blend_end_y = int(standard_height * foreground_ratio)
+        gradient = Image.new('L', (1, fg_height), color=0x00)
+        blend_len = int(fg_height * blend_ratio)
 
-    for y in range(standard_height):
-        if y < blend_end_y:
-            # Tính alpha theo tiến độ trong phần foreground rõ (dưới blend_end_y)
-            progress = y / blend_end_y
-            alpha = int(255 * progress)  # từ 0 → 255
-        else:
-            alpha = 255  # foreground rõ hoàn toàn
-        gradient.putpixel((0, y), alpha)
+        if merge_position == 'bottom':
+            blend_start = int(fg_height * (1 - foreground_ratio))
+            for y in range(fg_height):
+                if y < blend_start:
+                    alpha = 0
+                elif y < blend_start + blend_len:
+                    alpha = int(255 * (y - blend_start) / blend_len)
+                else:
+                    alpha = 255
+                gradient.putpixel((0, y), alpha)
 
-    # Đảo alpha: foreground cần hiện rõ ở trên
-    inverted_gradient = Image.eval(gradient, lambda px: 255 - px)
-    alpha_mask = inverted_gradient.resize((fg_width, standard_height))
+        else:  # 'bottom'
+            blend_start = int(fg_height * foreground_ratio)
+            for y in range(fg_height):
+                if y > blend_start:
+                    alpha = 0
+                elif y > blend_start - blend_len:
+                    alpha = int(255 * (blend_start - y) / blend_len)
+                else:
+                    alpha = 255
+                gradient.putpixel((0, y), alpha)
 
-    # Apply to foreground
+        alpha_mask = gradient.resize((fg_width, fg_height))
+
+    elif merge_position in ['left', 'right']:
+        fg_height = standard_height
+        fg_width = int(fg_aspect * fg_height)
+        fg = fg.resize((fg_width, fg_height), Image.LANCZOS)
+        fg_y = 0
+        fg_x = 0 if merge_position == 'left' else standard_width - fg_width
+
+        gradient = Image.new('L', (fg_width, 1), color=0x00)
+        blend_len = int(fg_width * blend_ratio)
+
+        if merge_position == 'right':
+            blend_start = int(fg_width * (1 - foreground_ratio))
+            for x in range(fg_width):
+                if x < blend_start:
+                    alpha = 0
+                elif x < blend_start + blend_len:
+                    alpha = int(255 * (x - blend_start) / blend_len)
+                else:
+                    alpha = 255
+                gradient.putpixel((x, 0), alpha)
+
+        else:  # 'right'
+            blend_start = int(fg_width * foreground_ratio)
+            for x in range(fg_width):
+                if x > blend_start:
+                    alpha = 0
+                elif x > blend_start - blend_len:
+                    alpha = int(255 * (blend_start - x) / blend_len)
+                else:
+                    alpha = 255
+                gradient.putpixel((x, 0), alpha)
+
+        alpha_mask = gradient.resize((fg_width, fg_height))
+
+    else:
+        raise ValueError("merge_position must be one of 'top', 'bottom', 'left', 'right'")
+
+    # Apply alpha mask
     r, g, b, a = fg.split()
     a = ImageChops.multiply(a, alpha_mask)
     fg = Image.merge('RGBA', (r, g, b, a))
 
-    # Compose result
+    # Paste onto background
     result = bg.copy()
     result.paste(fg, (fg_x, fg_y), fg)
 
     # Add logo if exists
     if logo_path and os.path.exists(logo_path):
         logo = Image.open(logo_path).convert("RGBA")
-        logo_max_w = int(standard_width * logo_scale)
+        logo_h = int(standard_height * logo_scale)
         logo_ratio = logo.width / logo.height
-        logo_w = logo_max_w
-        logo_h = int(logo_w / logo_ratio)
+        logo_w = int(logo_h * logo_ratio)
         logo = logo.resize((logo_w, logo_h), Image.LANCZOS)
 
-        margin = int(min(standard_width, standard_height) * 0.05)
-        logo_x = standard_width - logo_w - margin
-        logo_y = standard_height - logo_h - margin
+        logo_margin = int(standard_height * 0.02)
+        logo_x = standard_width - logo_w - logo_margin
+        logo_y = standard_height - logo_h - logo_margin
         result.paste(logo, (logo_x, logo_y), logo)
         logo.close()
 
-    # Save
     result.save(output_path)
     result.close()
-    fg.close()
     bg.close()
+    fg.close()
 
     return {
         "foreground_path": foreground_path,
         "background_path": background_path,
         "merged_image_path": output_path,
         "aspect_ratio": aspect_ratio,
-        "merge_position": "bottom-up",  # đúng hơn
-        "merge_margin_ratio": 0.05,
+        "merge_position": merge_position,
         "merge_foreground_ratio": foreground_ratio,
-        "is_user_upload": True
+        "blend_ratio": blend_ratio,
     }
 
 
@@ -117,29 +189,23 @@ def merge_foreground_background(
     aspect_ratio: float = 3/4,
     foreground_ratio: float = 1/2,
     logo_path: str = "static/images/Logo-MISA.webp",
-    logo_scale: float = 0.12,
+    logo_scale: float = 0.03,
 ) -> dict:
     """
-    Merge a foreground image onto a background image with a specified aspect ratio (width/height, float) and adjustable foreground area.
-    The background is cropped to the given aspect ratio. Foreground placement and size depend on the position:
-    - 'top': foreground occupies foreground_ratio of the height at the top.
-    - 'bottom': foreground occupies foreground_ratio of the height at the bottom.
-    - 'left': foreground occupies foreground_ratio of the width at the left.
-    - 'right': foreground occupies foreground_ratio of the width at the right.
-    Margin is applied to avoid touching the edges.
-
+    Merge a foreground image onto a background image with specified position.
+    
     Args:
-        foreground_path (str): Path to foreground image.
-        background_path (str): Path to background image.
+        foreground_path (str): Path to the foreground image.
+        background_path (str): Path to the background image.
         output_path (str): Path to save the merged image.
-        merge_position (str): One of 'top', 'bottom', 'left', 'right'.
-        margin_ratio (float): Margin as a fraction of the smallest image dimension (default 0.05).
-        aspect_ratio (float): Aspect ratio (width/height) for cropping background, e.g. 1.0 (1:1), 0.75 (3:4), 1.33 (4:3), 0.5625 (9:16), 1.77 (16:9). 1.33 (4:3).
-        foreground_ratio (float): Fraction of background occupied by foreground in the chosen direction (default 1/2).
-        logo_path (str): Path to logo image to add in the bottom right corner (default "static/images/Logo-MISA.webp").
-        logo_scale (float): Scale of the logo relative to the image width (default 0.12).
+        merge_position (str): Position to place the foreground image ('top', 'bottom', 'left', 'right').
+        margin_ratio (float): Margin ratio relative to the smaller dimension of the background.
+        aspect_ratio (float): Aspect ratio of the final image (width/height).
+        foreground_ratio (float): Ratio of the foreground image size relative to the background.
+        logo_path (str): Path to the logo image to be added.
+        logo_scale (float): Scale factor for the logo relative to the final image size.
     Returns:
-        dict: Details of the merged image including paths and parameters.
+        dict: Information about the merged image including paths and parameters.
     """
     if not os.path.exists(background_path):
         raise FileNotFoundError(f"Background file not found: {background_path}")
@@ -148,6 +214,10 @@ def merge_foreground_background(
     bg = Image.open(background_path).convert('RGB')
     fg = Image.open(foreground_path).convert('RGBA')
 
+    # Standard size
+    standard_height = 1600
+    standard_width = int(standard_height * aspect_ratio)
+    
     # Crop background to target aspect ratio
     target_ratio = aspect_ratio
     bg_w, bg_h = bg.size
@@ -161,7 +231,10 @@ def merge_foreground_background(
         new_h = int(bg_w / target_ratio)
         top = (bg_h - new_h) // 2
         bg = bg.crop((0, top, bg_w, top + new_h))
-    bg_w, bg_h = bg.size
+    
+    # Resize background to standard size early
+    bg = bg.resize((standard_width, standard_height), Image.LANCZOS)
+    bg_w, bg_h = standard_width, standard_height
 
     margin = int(min(bg_w, bg_h) * margin_ratio)
     # Ensure foreground_ratio does not exceed 1
@@ -208,24 +281,17 @@ def merge_foreground_background(
     result = bg.copy()
     result.paste(fg, (x, y), fg)
 
-    standard_height = 1600  # Standard height for resizing
-    standard_width = int(standard_height * aspect_ratio)
-
-    result = result.resize((standard_width, standard_height), Image.LANCZOS)
-
+    # Add logo if exists
     if logo_path and os.path.exists(logo_path):
-        logo = Image.open(logo_path).convert('RGBA')
-        res_w, res_h = result.size
-        # Scale logo to a fraction of width (logo_scale)
-        logo_max_w = int(res_w * logo_scale)
+        logo = Image.open(logo_path).convert("RGBA")
+        logo_h = int(standard_height * logo_scale)
         logo_ratio = logo.width / logo.height
-        logo_w = logo_max_w
-        logo_h = int(logo_w / logo_ratio)
+        logo_w = int(logo_h * logo_ratio)
         logo = logo.resize((logo_w, logo_h), Image.LANCZOS)
-        # Position: bottom right, with margin
-        logo_margin = int(min(res_w, res_h) * margin_ratio)
-        logo_x = res_w - logo_w - logo_margin
-        logo_y = res_h - logo_h - logo_margin
+
+        logo_margin = int(standard_height * 0.02)
+        logo_x = standard_width - logo_w - logo_margin
+        logo_y = standard_height - logo_h - logo_margin
         result.paste(logo, (logo_x, logo_y), logo)
         logo.close()
 
@@ -262,33 +328,6 @@ def add_text_to_image(
     margin_ratio: float = 0.05,
     text_ratio: float = 1/2,
 ) -> dict:
-    """
-    Add text to a specified area of the image (not covered by foreground), with margin and adjustable area ratio.
-    Text area and position are always one of: 'top', 'bottom', 'left', 'right'.
-    - 'top': text occupies text_ratio (default 1-foreground_ratio) of the height at the top.
-    - 'bottom': text occupies text_ratio of the height at the bottom.
-    - 'left': text occupies text_ratio (default 1-foreground_ratio) of the width at the left.
-    - 'right': text occupies text_ratio of the width at the right.
-    Margin is applied to avoid touching the edges.
-
-    Args:
-        image (Image.Image): The merged image (PIL Image).
-        output_path (str): Path to save the image with text.
-        text (str): Text to add.
-        font_path (str): Path to .ttf font file (optional).
-        font_color (str): Text color in hex (default black).
-        font_size (int): Font size (optional, auto-fit if None).
-        title (str): Title text (optional).
-        title_font_path (str): Path to .ttf font file (optional).
-        title_font_size (int): Title font size (optional, auto-fit if None).
-        text_position (str): One of 'top', 'bottom', 'left', 'right'.
-        margin_ratio (float): Margin as a fraction of image size (default 0.05).
-        text_ratio (float): Fraction of background occupied by text in the chosen direction (default 1-foreground_ratio).
-
-    Returns:
-        dict: Details of the image with text including paths and parameters.
-        
-    """
     if not os.path.exists(image_path):
         raise FileNotFoundError(f"Image file not found: {image_path}")
     img = Image.open(image_path).convert('RGB')
@@ -315,7 +354,7 @@ def add_text_to_image(
             title_font = ImageFont.truetype(title_font_path, title_font_size)
         else:
             title_font = ImageFont.load_default()
-        wrapped_title = _get_wrapped(title, title_font, text_area_w)
+        wrapped_title = _get_wrapped(title, title_font, text_area_w + 10)
         title_bbox = draw.multiline_textbbox((0, 0), wrapped_title, font=title_font)
         title_w, title_h = title_bbox[2] - title_bbox[0], title_bbox[3] - title_bbox[1]
     else:

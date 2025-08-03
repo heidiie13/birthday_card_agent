@@ -8,8 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from api.models import BackgroundResponse, TemplateResponse, GenerateRequest, GenerateResponse, CardType
-from api.services import get_random_template_service, get_templates_service, get_backgrounds_service, generate_card_service, save_upload_file
-
+from api.services import get_random_template_service, get_templates_service, get_random_backgrounds_service, generate_card_service, upload_images_service
 
 app = FastAPI(title="Card Generator API")
 
@@ -44,29 +43,20 @@ def get_random_template(card_type: CardType, request: Request):
     """Get a random template card by type."""
     return get_random_template_service(card_type.value, request)
 
-@app.get("/backgrounds", response_model=List[BackgroundResponse])
-def get_backgrounds(req: Request, page: int = Query(1, ge=1, description="Page number, starting from 1"),
-                    page_size: int = Query(10, ge=1, le=100, description="Number of items per page")):
-    """Get available background images with pagination."""
-    return get_backgrounds_service(req, page, page_size)
+@app.get("/random-background", response_model=BackgroundResponse)
+def get_random_background(req: Request):
+    """Get a random background image."""
+    return get_random_backgrounds_service(req)
 
 @app.post("/generate-card", response_model=GenerateResponse)
 def generate_card(req: GenerateRequest, request: Request):
     """Generate a birthday card based on the provided request."""
     return generate_card_service(req, request)
 
-@app.post("/upload_foreground")
+@app.post("/upload-foreground")
 async def upload_foreground(req: Request, file: UploadFile = File(...)):
     try:
-        result = save_upload_file(file, "foregrounds", req)
-        return {"foreground_url": result["url"], "foreground_path": result["path"]}
-    except ValueError as e:
-        return {"error": str(e)}
-
-@app.post("/upload_background")
-async def upload_background(req: Request, file: UploadFile = File(...)):
-    try:
-        result = save_upload_file(file, "backgrounds", req)
-        return {"background_url": result["url"], "background_path": result["path"]}
+        result = upload_images_service(file, req)
+        return {"foreground_url": result["foreground_url"], "foreground_path": result["foreground_path"]}
     except ValueError as e:
         return {"error": str(e)}

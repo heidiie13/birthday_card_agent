@@ -12,6 +12,7 @@ class GenerateRequest(BaseModel):
     background_path: Optional[str] = None
     foreground_path: Optional[str] = None
     merged_image_path: Optional[str] = None
+    aspect_ratio: Optional[float] = 3/4
 
 class BackgroundResponse(BaseModel):
     background_url: str

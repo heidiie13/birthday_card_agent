@@ -31,6 +31,12 @@ def _get_model() -> Runnable:
             model=os.getenv("MODEL_NAME"),
             temperature=0.7,
             default_headers={"App-Code": "fresher"},
+            extra_body={
+                # ...
+                "chat_template_kwargs": {
+                    "enable_thinking": False  # Hoặc False để tắt
+                }
+            }
         )
     except Exception as e:
         logger.error(f"Error getting model: {e}")

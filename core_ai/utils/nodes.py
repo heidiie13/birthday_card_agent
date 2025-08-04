@@ -164,7 +164,11 @@ def merge_node(state: State) -> State:
         state.merge_position = "right"
         state.text_ratio = 1 - state.merge_foreground_ratio - 0.02
         state.title_font_size = 150
-        
+        state.font_size = 80
+
+    if state.merge_foreground_ratio < 1/2 and state.aspect_ratio < 1:
+        state.font_size = 70
+
     state.text_position = position_map.get(state.merge_position)
     # Generate output path
     output_path = f"static/images/cards/{uuid.uuid4().hex}.png"
@@ -208,9 +212,6 @@ def add_text_node(state: State) -> State:
 
     logger.info(f"Font path: {font_path}")
     logger.info(f"Title font path: {title_font_path}")
-
-    if state.merge_foreground_ratio < 1/2:
-        state.font_size = 70
 
     try:
         add_text_to_image(

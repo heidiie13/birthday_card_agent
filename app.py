@@ -13,18 +13,18 @@ BACKEND_URL = os.getenv("BACKEND_URL")
 
 st.set_page_config(page_title="Card Generator", layout="wide")
 
-def fetch_templates(card_type: str = "birthday", page: int = 1, page_size: int = 4) -> List[Dict]:
+def fetch_templates(card_type: str = "birthday", aspect_ratio: float = 3/4, page: int = 1, page_size: int = 4) -> List[Dict]:
     try:
-        resp = requests.get(f"{BACKEND_URL}/templates/{card_type}", params={"page": page, "page_size": page_size})
+        resp = requests.get(f"{BACKEND_URL}/templates/{card_type}", params={"aspect_ratio": aspect_ratio, "page": page, "page_size": page_size})
         resp.raise_for_status()
         return resp.json()
     except Exception as e:
         st.error(f"Lỗi khi lấy mẫu: {e}")
         return []
 
-def fetch_random_template(card_type: str = "birthday") -> Dict:
+def fetch_random_template(card_type: str = "birthday", aspect_ratio: float = 3/4) -> Dict:
     try:
-        resp = requests.get(f"{BACKEND_URL}/random-template/{card_type}")
+        resp = requests.get(f"{BACKEND_URL}/random-template/{card_type}", params={"aspect_ratio": aspect_ratio})
         resp.raise_for_status()
         return resp.json()
     except Exception as e:
@@ -115,7 +115,7 @@ def main():
                 st.session_state.templates_page = 1
                 st.session_state.templates_card_type = card_type
             
-            templates = fetch_templates(card_type, st.session_state.templates_page, 4)
+            templates = fetch_templates(card_type, selected_aspect_ratio, st.session_state.templates_page, 4)
             
             cols = st.columns(4)
             has_templates = bool(templates)
@@ -155,7 +155,7 @@ def main():
             center_col1, center_col2, center_col3 = st.columns([0.2, 0.6, 0.2])
             with center_col2:
                 if st.button("🎲 Lấy mẫu ngẫu nhiên", use_container_width=True):
-                    random_template = fetch_random_template(card_type)
+                    random_template = fetch_random_template(card_type, selected_aspect_ratio)
                     if random_template:
                         st.session_state.random_template = random_template
                         st.session_state.pop("generated_card", None)
@@ -221,11 +221,13 @@ def main():
                         background = fetch_random_background()
                         fg_path = st.session_state.uploaded_foreground.get("foreground_path")
                         fg_url = st.session_state.uploaded_foreground.get("foreground_url")
+                        aspect_ratio = st.session_state.get("selected_aspect_ratio", 3/4)
                         st.session_state.uploaded_template = {
                             "foreground_path": fg_path,
                             "background_path": background.get("background_path"),
                             "foreground_url": fg_url,
-                            "background_url": background.get("background_url")
+                            "background_url": background.get("background_url"),
+                            "aspect_ratio": aspect_ratio
                         }
     
     with left_col:

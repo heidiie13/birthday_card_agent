@@ -447,7 +447,7 @@ def _get_wrapped(text, font, max_width):
         lines.append(line)
     return '\n'.join(lines)
 
-def get_templates_by_type(card_type: str):
+def get_templates_by_type(card_type: str, aspect_ratio: float = 3/4) -> list:
     """
     Get a list of image info dictionaries by type from the template_card_info.json file.
     Args:
@@ -464,9 +464,9 @@ def get_templates_by_type(card_type: str):
             data = json.load(f)
         except Exception:
             return []
-    return [item for item in data if item.get('card_type') == card_type]
+    return [item for item in data if item.get('card_type') == card_type and item.get('aspect_ratio') == aspect_ratio]
 
-def get_random_template_by_type(card_type: str) -> Optional[dict]:
+def get_random_template_by_type(card_type: str, aspect_ratio: float = 3/4) -> Optional[dict]:
     """
     Get a random template image info dictionary by type from the template_card_info.json file.
     Args:
@@ -474,7 +474,7 @@ def get_random_template_by_type(card_type: str) -> Optional[dict]:
     Returns:
         dict: A random image info dictionary matching the type, or None if not found
     """
-    templates = get_templates_by_type(card_type)
+    templates = get_templates_by_type(card_type, aspect_ratio)
     if not templates:
         return None
     return random.choice(templates)

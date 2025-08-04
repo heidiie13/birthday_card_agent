@@ -14,8 +14,8 @@ CARDS_DIR = os.path.join(STATIC_DIR, "images", "cards")
 
 graph = build_card_gen_graph()
 
-def get_templates_service(type: str, request: Request, page: int = 1, page_size: int = 10) -> List[TemplateResponse]:
-    templates = get_templates_by_type(type)
+def get_templates_service(card_type: str, aspect_ratio: float, request: Request, page: int = 1, page_size: int = 10) -> List[TemplateResponse]:
+    templates = get_templates_by_type(card_type, aspect_ratio)
     start = (page - 1) * page_size
     end = start + page_size
     paged_cards = templates[start:end]
@@ -35,8 +35,8 @@ def get_templates_service(type: str, request: Request, page: int = 1, page_size:
         ))
     return result
 
-def get_random_template_service(type: str, request: Request) -> TemplateResponse:
-    template = get_random_template_by_type(type)
+def get_random_template_service(card_type: str, aspect_ratio: float, request: Request) -> TemplateResponse:
+    template = get_random_template_by_type(card_type, aspect_ratio)
     merged_image_url = str(request.base_url).rstrip("/") + f"/{template['merged_image_path'].replace(os.sep, '/')}"
     template['merged_image_url'] = merged_image_url
     if not template:

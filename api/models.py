@@ -11,7 +11,10 @@ class CardType(str, Enum):
     general = "general"
     christmas = "christmas"
     teacher_day = "teacher_day"
-    
+
+class AspectRatio(float, Enum):
+    ratio_3_4 = 3 / 4
+    ratio_4_3 = 4 / 3
 
 class GenerateRequest(BaseModel):
     greeting_text_instructions: str

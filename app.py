@@ -13,18 +13,18 @@ BACKEND_URL = os.getenv("BACKEND_URL")
 
 st.set_page_config(page_title="Card Generator", layout="wide")
 
-def fetch_templates(card_type: str = "birthday", page: int = 1, page_size: int = 4) -> List[Dict]:
+def fetch_templates(card_type: str = "birthday", aspect_ratio: float = 3/4, page: int = 1, page_size: int = 4) -> List[Dict]:
     try:
-        resp = requests.get(f"{BACKEND_URL}/templates/{card_type}", params={"page": page, "page_size": page_size})
+        resp = requests.get(f"{BACKEND_URL}/templates/{card_type}", params={"aspect_ratio": aspect_ratio, "page": page, "page_size": page_size})
         resp.raise_for_status()
         return resp.json()
     except Exception as e:
         st.error(f"Lỗi khi lấy mẫu: {e}")
         return []
 
-def fetch_random_template(card_type: str = "birthday") -> Dict:
+def fetch_random_template(card_type: str = "birthday", aspect_ratio: float = 3/4) -> Dict:
     try:
-        resp = requests.get(f"{BACKEND_URL}/random-template/{card_type}")
+        resp = requests.get(f"{BACKEND_URL}/random-template/{card_type}", params={"aspect_ratio": aspect_ratio})
         resp.raise_for_status()
         return resp.json()
     except Exception as e:
@@ -148,15 +148,18 @@ def main():
                     if mode == "Tải ảnh lên" and "uploaded_template" in st.session_state and "uploaded_foreground" in st.session_state:
                         fg_path = st.session_state.uploaded_foreground.get("foreground_path")
                         fg_url = st.session_state.uploaded_foreground.get("foreground_url")
-                        bg_path = st.session_state.uploaded_template.get("background_path")
-                        bg_url = st.session_state.uploaded_template.get("background_url")
-                        
-                        # Recreate uploaded_template with existing foreground and background
+
+                        aspect_ratio = st.session_state.get("selected_aspect_ratio", 3/4)
+
                         st.session_state.uploaded_template = {
                             "foreground_path": fg_path,
                             "background_path": bg_path,
                             "foreground_url": fg_url,
-                            "background_url": bg_url
+
+
+                            "background_url": background.get("background_url"),
+                            "aspect_ratio": aspect_ratio
+
                         }
                 
                 st.divider()
@@ -171,7 +174,7 @@ def main():
                         st.session_state.templates_page = 1
                         st.session_state.templates_card_type = card_type
                     
-                    templates = fetch_templates(card_type, st.session_state.templates_page, 4)
+                    templates = fetch_templates(card_type, selected_aspect_ratio, st.session_state.templates_page, 4)
                     
                     cols = st.columns(2)
                     has_templates = bool(templates)
@@ -204,7 +207,7 @@ def main():
                 elif mode == "Ngẫu nhiên":
                     st.markdown("**Mẫu ngẫu nhiên**")
                     if st.button("🎲 Lấy mẫu ngẫu nhiên", use_container_width=True):
-                        random_template = fetch_random_template(card_type)
+                        random_template = fetch_random_template(card_type, selected_aspect_ratio)
                         if random_template:
                             st.session_state.random_template = random_template
                             st.session_state.pop("generated_card", None)

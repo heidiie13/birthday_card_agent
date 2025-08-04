@@ -60,7 +60,7 @@ def main():
             height=100,
             key="greeting_text_input"
         )
-        
+
         mode = "Ngẫu nhiên"
         aspect_options = {"3:4": 3/4, "4:3": 4/3}
         selected_aspect_label = st.radio(
@@ -137,15 +137,18 @@ def main():
                     if mode == "Tải ảnh lên" and "uploaded_template" in st.session_state and "uploaded_foreground" in st.session_state:
                         fg_path = st.session_state.uploaded_foreground.get("foreground_path")
                         fg_url = st.session_state.uploaded_foreground.get("foreground_url")
-
-                        aspect_ratio = st.session_state.get("selected_aspect_ratio", 3/4)
+                        
+                        # Get existing background info from uploaded_template
+                        current_template = st.session_state.uploaded_template
+                        bg_path = current_template.get("background_path")
+                        bg_url = current_template.get("background_url")
 
                         st.session_state.uploaded_template = {
                             "foreground_path": fg_path,
                             "background_path": bg_path,
                             "foreground_url": fg_url,
-                            "background_url": background.get("background_url"),
-                            "aspect_ratio": aspect_ratio
+                            "background_url": bg_url,
+                            "aspect_ratio": selected_aspect_ratio
                         }
                 
                 st.divider()
@@ -200,7 +203,9 @@ def main():
                     if "random_template" in st.session_state:
                         template = st.session_state.random_template
                         img_url = template.get("merged_image_url", f"{BACKEND_URL}/{template['merged_image_path']}")
-                        st.image(img_url, caption="Mẫu ngẫu nhiên", width=200)
+                        col1, col2, col3 = st.columns([1, 2, 1])
+                        with col2:
+                            st.image(img_url, caption="Mẫu ngẫu nhiên", use_container_width=True)
                 
                 elif mode == "Tải ảnh lên":
                     st.markdown("**Upload ảnh**")
@@ -249,7 +254,8 @@ def main():
                                 "foreground_path": fg_path,
                                 "background_path": background.get("background_path"),
                                 "foreground_url": fg_url,
-                                "background_url": background.get("background_url")
+                                "background_url": background.get("background_url"),
+                                "aspect_ratio": selected_aspect_ratio
                             }
                         
                         uploaded_template = st.session_state.uploaded_template
@@ -266,7 +272,8 @@ def main():
                                     "foreground_path": fg_path,
                                     "background_path": new_bg.get("background_path"),
                                     "foreground_url": fg_url,
-                                    "background_url": new_bg.get("background_url")
+                                    "background_url": new_bg.get("background_url"),
+                                    "aspect_ratio": selected_aspect_ratio
                                 }
                                 st.rerun()
         
@@ -357,7 +364,9 @@ def main():
             else:
                 st.error("Không thể hiển thị thiệp")
         else:
-            st.info("Thiệp sẽ hiển thị ở đây sau khi tạo")
+            col1, col2, col3 = st.columns([3, 2, 3])
+            with col2:
+                st.info("Thiệp sẽ hiển thị ở đây sau khi tạo")
         
         st.markdown("</div>", unsafe_allow_html=True)
 

@@ -1,11 +1,27 @@
 from typing import Optional
+from enum import Enum
 from pydantic import BaseModel
+
+class CardType(str, Enum):
+    birthday = "birthday"
+    graduation = "graduation"
+    wedding = "wedding"
+    valentine = "valentine"
+    new_year = "new_year"
+    general = "general"
+    christmas = "christmas"
+    teacher_day = "teacher_day"
+
+class AspectRatio(float, Enum):
+    ratio_3_4 = 3 / 4
+    ratio_4_3 = 4 / 3
 
 class GenerateRequest(BaseModel):
     greeting_text_instructions: str
     background_path: Optional[str] = None
     foreground_path: Optional[str] = None
     merged_image_path: Optional[str] = None
+    aspect_ratio: Optional[float] = 3/4
 
 class BackgroundResponse(BaseModel):
     background_url: str

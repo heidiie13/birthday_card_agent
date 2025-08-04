@@ -10,8 +10,9 @@ from core_ai.utils.nodes import (
 
 from core_ai.utils.state import State
 from langgraph.graph import StateGraph
+from langgraph.graph.state import CompiledStateGraph
 
-def build_birthday_card_graph() -> StateGraph:
+def build_card_gen_graph() -> CompiledStateGraph:
     graph_builder = StateGraph(State)
 
     graph_builder.add_node("input", lambda state: state)

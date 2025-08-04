@@ -2,19 +2,20 @@ import os
 import shutil
 from typing import List
 
+import random
 from fastapi import HTTPException, Request, UploadFile
 from api.models import BackgroundResponse, TemplateResponse, GenerateRequest, GenerateResponse
 
 from core_ai.utils.tools import get_templates_by_type, get_random_template_by_type
-from core_ai.graph import build_birthday_card_graph
+from core_ai.graph import build_card_gen_graph
 
 STATIC_DIR = "static"
 CARDS_DIR = os.path.join(STATIC_DIR, "images", "cards")
 
-graph = build_birthday_card_graph()
+graph = build_card_gen_graph()
 
-def get_templates_service(type: str, request: Request, page: int = 1, page_size: int = 10) -> List[TemplateResponse]:
-    templates = get_templates_by_type(type)
+def get_templates_service(card_type: str, aspect_ratio: float, request: Request, page: int = 1, page_size: int = 10) -> List[TemplateResponse]:
+    templates = get_templates_by_type(card_type, aspect_ratio)
     start = (page - 1) * page_size
     end = start + page_size
     paged_cards = templates[start:end]
@@ -34,44 +35,45 @@ def get_templates_service(type: str, request: Request, page: int = 1, page_size:
         ))
     return result
 
-def get_random_template_service(type: str, request: Request) -> TemplateResponse:
-    template = get_random_template_by_type(type)
+def get_random_template_service(card_type: str, aspect_ratio: float, request: Request) -> TemplateResponse:
+    template = get_random_template_by_type(card_type, aspect_ratio)
     merged_image_url = str(request.base_url).rstrip("/") + f"/{template['merged_image_path'].replace(os.sep, '/')}"
     template['merged_image_url'] = merged_image_url
     if not template:
         raise HTTPException(status_code=404, detail="No template found")
     return TemplateResponse(**template)
 
-def get_backgrounds_service(req: Request, page: int = 1, page_size: int = 10) -> List[BackgroundResponse]:
+def get_random_backgrounds_service(req: Request) -> BackgroundResponse:
     backgrounds_dir = os.path.join(STATIC_DIR, "images", "backgrounds")
     if not os.path.exists(backgrounds_dir):
         raise HTTPException(status_code=404, detail="Backgrounds directory not found")
     background_files = [f for f in os.listdir(backgrounds_dir) if f.endswith((".png", ".jpg", ".jpeg", ".webp"))]
     if not background_files:
         raise HTTPException(status_code=404, detail="No background images found")
-    start = (page - 1) * page_size
-    end = start + page_size
-    paged_files = background_files[start:end]
-    result = []
-    for file in paged_files:
-        background_path = os.path.join(backgrounds_dir, file)
-        background_url = str(req.base_url).rstrip("/") + f"/{background_path.replace(os.sep, '/')}"
-        result.append(BackgroundResponse(
-            background_url=background_url,
-            background_path=background_path
-        ))
-    return result
+    random_file = random.choice(background_files)
+    background_path = os.path.join(backgrounds_dir, random_file)
+    background_url = str(req.base_url).rstrip("/") + f"/{background_path.replace(os.sep, '/')}"
+    return BackgroundResponse(
+        background_url=background_url,
+        background_path=background_path
+    )
 
 def generate_card_service(req: GenerateRequest, request: Request) -> GenerateResponse:
-    greeting_text_instructions = {
+    input = {
         "greeting_text_instructions": req.greeting_text_instructions,
+        "aspect_ratio": req.aspect_ratio,
     }
-    if req.background_path and req.foreground_path and req.merged_image_path:
-        greeting_text_instructions["background_path"] = req.background_path
-        greeting_text_instructions["foreground_path"] = req.foreground_path
-        greeting_text_instructions["merged_image_path"] = req.merged_image_path
+    
+    # Add paths if provided - support both template mode and user upload mode
+    if req.background_path and req.foreground_path:
+        input["background_path"] = req.background_path
+        input["foreground_path"] = req.foreground_path
+    
+    if req.merged_image_path:
+        input["merged_image_path"] = req.merged_image_path
+        
     try:
-        result = graph.invoke(greeting_text_instructions)
+        result = graph.invoke(input)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     card_path = result.get("card_path")
@@ -81,12 +83,12 @@ def generate_card_service(req: GenerateRequest, request: Request) -> GenerateRes
     return GenerateResponse(card_url=card_url)
 
 
-def save_upload_file(file: UploadFile, subfolder: str, request: Request) -> dict:
+def upload_images_service(file: UploadFile, request: Request) -> dict:
     allowed_ext = (".png", ".jpg", ".jpeg", ".webp")
     if not file.filename.lower().endswith(allowed_ext):
         raise ValueError("Only image files are allowed (png, jpg, jpeg, webp)")
 
-    upload_dir = os.path.join("static", "images", subfolder, "uploads")
+    upload_dir = os.path.join("static", "images", "foregrounds", "uploads")
     os.makedirs(upload_dir, exist_ok=True)
     
     file_path = os.path.join(upload_dir, file.filename)
@@ -94,4 +96,4 @@ def save_upload_file(file: UploadFile, subfolder: str, request: Request) -> dict
         shutil.copyfileobj(file.file, buffer)
 
     file_url = str(request.base_url).rstrip("/") + f"/{file_path.replace(os.sep, '/')}"
-    return {"url": file_url, "path": file_path}
+    return {"foreground_url": file_url, "foreground_path": file_path}

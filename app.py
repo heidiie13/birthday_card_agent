@@ -46,195 +46,264 @@ def main():
         unsafe_allow_html=True
     )
     
-    left_col, center_col, right_col = st.columns([1, 1.5, 1])
+    left_col, right_col = st.columns([1, 2])
     
     with left_col:
-        st.subheader("Chọn mẫu thiệp")
+        st.subheader("Tạo thiệp")
         
-        mode = st.radio(
-            "Chọn cách lấy mẫu:",
-            ["Tải ảnh lên", "Chọn mẫu", "Ngẫu nhiên"],
-            horizontal=False,
-        )
-        
-        card_type = "birthday"
-        card_type_options = [
-            "birthday",
-            "graduation",
-            "wedding",
-            "valentine",
-            "new_year",
-            "general",
-            "christmas",
-            "teacher_day"
-        ]
-        card_type_labels = {
-            "birthday": "Sinh nhật",
-            "graduation": "Tốt nghiệp",
-            "wedding": "Cưới",
-            "valentine": "Valentine",
-            "new_year": "Năm mới",
-            "general": "Chung",
-            "christmas": "Giáng sinh",
-            "teacher_day": "Ngày nhà giáo"
-        }
-        if mode in ["Chọn mẫu", "Ngẫu nhiên"]:
-            card_type = st.selectbox(
-                "Loại thiệp:",
-                card_type_options,
-                format_func=lambda x: card_type_labels.get(x, x),
-                help="Chọn loại thiệp chúc bạn muốn tạo"
-            )
-        
-        st.divider()
-        
+        # Initialize greeting text in session state if not exists
+        if "greeting_text" not in st.session_state:
+            st.session_state.greeting_text = ""
+    
         greeting_text = st.text_area(
             "Yêu cầu nội dung thiệp *",
             placeholder="VD: Thiệp chúc mừng sinh nhật cho bé gái tên Linh",
+            height=100,
+            key="greeting_text_input"
         )
-
-        aspect_options = {"3:4": 3/4, "4:3": 4/3}
-        selected_aspect_label = st.radio(
-            "Chọn tỉ lệ khung hình:",
-            list(aspect_options.keys()),
-            horizontal=True,
-        )
-        selected_aspect_ratio = aspect_options[selected_aspect_label]
-        st.session_state.selected_aspect_ratio = selected_aspect_ratio
-
-        generate_btn = st.button("🎨 Tạo thiệp", type="primary", use_container_width=True)
-
-    with center_col:
-        if mode == "Chọn mẫu":
-            st.markdown("<h3 style='text-align:center;'>Mẫu thiệp</h3>", unsafe_allow_html=True)
-            
-            # Khởi tạo pagination
-            if "templates_page" not in st.session_state:
-                st.session_state.templates_page = 1
-            if "templates_card_type" not in st.session_state or st.session_state.templates_card_type != card_type:
-                st.session_state.templates_page = 1
-                st.session_state.templates_card_type = card_type
-            
-            templates = fetch_templates(card_type, st.session_state.templates_page, 4)
-            
-            cols = st.columns(4)
-            has_templates = bool(templates)
-            for idx in range(4):
-                with cols[idx]:
-                    if has_templates and idx < len(templates):
-                        template = templates[idx]
-                        img_url = template.get('merged_image_url', f"{BACKEND_URL}/{template['merged_image_path']}")
-                        st.image(img_url, caption=f"Mẫu {idx+1}", width=120)
-                        # Căn giữa nút chọn bằng cách chia cột nhỏ hơn
-                        btn_col1, btn_col2, btn_col3 = st.columns([0.1, 0.6, 0.3])
-                        with btn_col2:
-                            if st.button("Chọn", key=f"select_template_{idx}_{st.session_state.templates_page}", use_container_width=True):
-                                st.session_state.selected_template = template
-                                st.session_state.pop("generated_card", None)
-                                st.success("✅ Đã chọn mẫu!")
-                                st.rerun()
-                    else:
-                        st.empty()
-
-            pg_col1, pg_col2, pg_col3 = st.columns([1, 1, 1])
-            with pg_col1:
-                if st.button("◀ Trang trước", disabled=(st.session_state.templates_page == 1), use_container_width=True):
-                    st.session_state.templates_page -= 1
-                    st.rerun()
-            with pg_col2:
-                st.markdown(f"<div style='text-align:center;font-weight:bold;'>Trang {st.session_state.templates_page}</div>", unsafe_allow_html=True)
-            with pg_col3:
-                if st.button("Trang sau ▶", disabled=(not has_templates or len(templates) < 4), use_container_width=True):
-                    st.session_state.templates_page += 1
-                    st.rerun()
-            if not has_templates and st.session_state.templates_page == 1:
-                st.info("Không có mẫu nào")
-            
-        elif mode == "Ngẫu nhiên":
-            st.markdown("<h3 style='text-align:center;'>Mẫu ngẫu nhiên</h3>", unsafe_allow_html=True)
-            center_col1, center_col2, center_col3 = st.columns([0.2, 0.6, 0.2])
-            with center_col2:
-                if st.button("🎲 Lấy mẫu ngẫu nhiên", use_container_width=True):
-                    random_template = fetch_random_template(card_type)
-                    if random_template:
-                        st.session_state.random_template = random_template
-                        st.session_state.pop("generated_card", None)
-                        st.rerun()
-                if "random_template" in st.session_state:
-                    template = st.session_state.random_template
-                    img_url = template.get("merged_image_url", f"{BACKEND_URL}/{template['merged_image_path']}")
-                    st.markdown(
-                        f"""
-                        <div style="display: flex; justify-content: center;">
-                            <img src="{img_url}" alt="Mẫu ngẫu nhiên" style="width: 200px; display: block; margin: 0 auto; border-radius: 0.5rem;">
-                        </div>
-                        <p style="text-align: center;">Mẫu ngẫu nhiên</p>
-                        """,
-                        unsafe_allow_html=True
-                    )
         
-        elif mode == "Tải ảnh lên":
-            st.markdown("<h3 style='text-align:center;'>Upload ảnh</h3>", unsafe_allow_html=True)
-            upload_col1, upload_col2, upload_col3 = st.columns([0.2, 0.6, 0.2])
-            with upload_col2:
-                st.info("Chọn ảnh để upload")
-                uploaded_file = st.file_uploader(
-                    "Chọn ảnh cho thiệp:",
-                    type=["png", "jpg", "jpeg", "webp"],
-                    key="file_uploader"  # Add a unique key to the uploader
+        # Customization toggle
+        customize_mode = st.toggle("Mẫu tùy chỉnh")
+        
+        # Track customize mode changes and clear session state when turning off
+        if "current_customize_mode" not in st.session_state:
+            st.session_state.current_customize_mode = customize_mode
+        elif st.session_state.current_customize_mode != customize_mode:
+            if not customize_mode:
+                # Clear all template-related state when turning off customize mode
+                st.session_state.pop("uploaded_template", None)
+                st.session_state.pop("uploaded_foreground", None)
+                st.session_state.pop("last_uploaded_file", None)
+                st.session_state.pop("selected_template", None)
+                st.session_state.pop("random_template", None)
+                st.session_state.pop("generated_card", None)
+            st.session_state.current_customize_mode = customize_mode
+        
+        mode = "Ngẫu nhiên"  # Default mode
+        selected_aspect_ratio = 3/4  # Default aspect ratio
+        
+        if customize_mode:
+            with st.container(height=600):
+                mode = st.radio(
+                    "Chọn cách lấy mẫu:",
+                    ["Tải ảnh lên", "Chọn mẫu", "Ngẫu nhiên"],
+                    horizontal=False,
+                    key="mode_selection"
                 )
-
-                # Initialize session state for tracking uploaded file
-                if "last_uploaded_file" not in st.session_state:
-                    st.session_state.last_uploaded_file = None
-                if "uploaded_foreground" not in st.session_state:
-                    st.session_state.uploaded_foreground = None
+                
+                # Track mode changes and clear appropriate session state
+                if "current_mode" not in st.session_state:
+                    st.session_state.current_mode = mode
+                elif st.session_state.current_mode != mode:
+                    # Mode changed, clear relevant session state
+                    if st.session_state.current_mode == "Tải ảnh lên":
+                        # Clear upload-related state when leaving upload mode
+                        st.session_state.pop("uploaded_template", None)
+                        st.session_state.pop("uploaded_foreground", None)
+                        st.session_state.pop("last_uploaded_file", None)
+                    elif st.session_state.current_mode == "Chọn mẫu":
+                        # Clear template selection when leaving template mode
+                        st.session_state.pop("selected_template", None)
+                    elif st.session_state.current_mode == "Ngẫu nhiên":
+                        # Clear random template when leaving random mode
+                        st.session_state.pop("random_template", None)
                     
-                # Only process upload if a new file is uploaded
-                if uploaded_file and uploaded_file != st.session_state.last_uploaded_file:
-                    files = {"file": uploaded_file}
-                    try:
-                        upload_resp = requests.post(f"{BACKEND_URL}/upload-foreground", files=files)
-                        upload_resp.raise_for_status()
-                        upload_data = upload_resp.json()
-                        if "error" not in upload_data:
-                            fg_path = upload_data.get("foreground_path")
-                            fg_url = upload_data.get("foreground_url")
-                            st.session_state.uploaded_foreground = {
-                                "foreground_path": fg_path,
-                                "foreground_url": fg_url
-                            }
-                            st.session_state.last_uploaded_file = uploaded_file  # Track the uploaded file
-                            st.success("✅ Ảnh đã upload thành công!")
-                        else:
-                            st.error(f"Lỗi upload: {upload_data['error']}")
-                    except Exception as e:
-                        st.error(f"Lỗi khi upload: {e}")
-
-                # Show background selection after upload
-                if "uploaded_foreground" in st.session_state and st.session_state.uploaded_foreground:
-                    st.divider()
-                    st.session_state.pop("generated_card", None)
-                    # st.rerun()
-                    # Initialize uploaded_template if not already set
-                    if "uploaded_template" not in st.session_state:
-                        background = fetch_random_background()
+                    st.session_state.current_mode = mode
+                    st.session_state.pop("generated_card", None)  # Clear generated card when mode changes
+                
+                if mode in ["Chọn mẫu", "Ngẫu nhiên"]:
+                    card_type = st.selectbox(
+                        "Loại thiệp:",
+                        ["birthday", "graduation", "wedding", "valentine", "new_year", "general", "christmas", "teacher_day"],
+                        format_func=lambda x: {
+                            "birthday": "Sinh nhật",
+                            "graduation": "Tốt nghiệp", 
+                            "wedding": "Cưới",
+                            "valentine": "Valentine",
+                            "new_year": "Năm mới",
+                            "general": "Tổng hợp",
+                            "christmas": "Giáng sinh",
+                            "teacher_day": "Ngày nhà giáo"
+                        }.get(x, x),
+                        help="Chọn loại thiệp chúc bạn muốn tạo"
+                    )
+                
+                aspect_options = {"3:4": 3/4, "4:3": 4/3}
+                selected_aspect_label = st.radio(
+                    "Chọn tỉ lệ khung hình:",
+                    list(aspect_options.keys()),
+                    horizontal=True,
+                    key="aspect_ratio_selection"
+                )
+                selected_aspect_ratio = aspect_options[selected_aspect_label]
+                
+                # Track aspect ratio changes and clear generated card if changed
+                if "current_aspect_ratio" not in st.session_state:
+                    st.session_state.current_aspect_ratio = selected_aspect_ratio
+                elif st.session_state.current_aspect_ratio != selected_aspect_ratio:
+                    st.session_state.current_aspect_ratio = selected_aspect_ratio
+                    st.session_state.pop("generated_card", None)  # Clear generated card when aspect ratio changes
+                    
+                    # If in upload mode and template exists, preserve the uploaded foreground
+                    if mode == "Tải ảnh lên" and "uploaded_template" in st.session_state and "uploaded_foreground" in st.session_state:
                         fg_path = st.session_state.uploaded_foreground.get("foreground_path")
                         fg_url = st.session_state.uploaded_foreground.get("foreground_url")
+                        bg_path = st.session_state.uploaded_template.get("background_path")
+                        bg_url = st.session_state.uploaded_template.get("background_url")
+                        
+                        # Recreate uploaded_template with existing foreground and background
                         st.session_state.uploaded_template = {
                             "foreground_path": fg_path,
-                            "background_path": background.get("background_path"),
+                            "background_path": bg_path,
                             "foreground_url": fg_url,
-                            "background_url": background.get("background_url")
+                            "background_url": bg_url
                         }
-    
-    with left_col:
+                
+                st.divider()
+                
+                if mode == "Chọn mẫu":
+                    st.markdown("**Mẫu thiệp**")
+                    
+                    # Khởi tạo pagination
+                    if "templates_page" not in st.session_state:
+                        st.session_state.templates_page = 1
+                    if "templates_card_type" not in st.session_state or st.session_state.templates_card_type != card_type:
+                        st.session_state.templates_page = 1
+                        st.session_state.templates_card_type = card_type
+                    
+                    templates = fetch_templates(card_type, st.session_state.templates_page, 4)
+                    
+                    cols = st.columns(2)
+                    has_templates = bool(templates)
+                    for idx in range(min(4, len(templates) if templates else 0)):
+                        with cols[idx % 2]:
+                            if has_templates and idx < len(templates):
+                                template = templates[idx]
+                                img_url = template.get('merged_image_url', f"{BACKEND_URL}/{template['merged_image_path']}")
+                                st.image(img_url, caption=f"Mẫu {idx+1}", use_container_width=True)
+                                if st.button(f"Chọn mẫu {idx+1}", key=f"select_template_{idx}_{st.session_state.templates_page}", use_container_width=True):
+                                    st.session_state.selected_template = template
+                                    st.session_state.pop("generated_card", None)
+                                    st.success("✅ Đã chọn mẫu!")
+                                    st.rerun()
+                    
+                    pg_col1, pg_col2, pg_col3 = st.columns([1, 1, 1])
+                    with pg_col1:
+                        if st.button("◀ Trang trước", disabled=(st.session_state.templates_page == 1), use_container_width=True):
+                            st.session_state.templates_page -= 1
+                            st.rerun()
+                    with pg_col2:
+                        st.markdown(f"<div style='text-align:center;font-weight:bold;'>Trang {st.session_state.templates_page}</div>", unsafe_allow_html=True)
+                    with pg_col3:
+                        if st.button("Trang sau ▶", disabled=(not has_templates or len(templates) < 4), use_container_width=True):
+                            st.session_state.templates_page += 1
+                            st.rerun()
+                    if not has_templates and st.session_state.templates_page == 1:
+                        st.info("Không có mẫu nào")
+                        
+                elif mode == "Ngẫu nhiên":
+                    st.markdown("**Mẫu ngẫu nhiên**")
+                    if st.button("🎲 Lấy mẫu ngẫu nhiên", use_container_width=True):
+                        random_template = fetch_random_template(card_type)
+                        if random_template:
+                            st.session_state.random_template = random_template
+                            st.session_state.pop("generated_card", None)
+                            st.rerun()
+                    if "random_template" in st.session_state:
+                        template = st.session_state.random_template
+                        img_url = template.get("merged_image_url", f"{BACKEND_URL}/{template['merged_image_path']}")
+                        st.image(img_url, caption="Mẫu ngẫu nhiên", width=200)
+                
+                elif mode == "Tải ảnh lên":
+                    st.markdown("**Upload ảnh**")
+                    st.info("Chọn ảnh để upload")
+                    uploaded_file = st.file_uploader(
+                        "Chọn ảnh cho thiệp:",
+                        type=["png", "jpg", "jpeg", "webp"],
+                        key="file_uploader"
+                    )
+
+                    # Initialize session state for tracking uploaded file
+                    if "last_uploaded_file" not in st.session_state:
+                        st.session_state.last_uploaded_file = None
+                    if "uploaded_foreground" not in st.session_state:
+                        st.session_state.uploaded_foreground = None
+                        
+                    # Only process upload if a new file is uploaded
+                    if uploaded_file and uploaded_file != st.session_state.last_uploaded_file:
+                        # Clear previous upload-related session state when new file is uploaded
+                        st.session_state.pop("uploaded_template", None)
+                        st.session_state.pop("generated_card", None)
+                        
+                        files = {"file": uploaded_file}
+                        try:
+                            upload_resp = requests.post(f"{BACKEND_URL}/upload-foreground", files=files)
+                            upload_resp.raise_for_status()
+                            upload_data = upload_resp.json()
+                            if "error" not in upload_data:
+                                fg_path = upload_data.get("foreground_path")
+                                fg_url = upload_data.get("foreground_url")
+                                st.session_state.uploaded_foreground = {
+                                    "foreground_path": fg_path,
+                                    "foreground_url": fg_url
+                                }
+                                st.session_state.last_uploaded_file = uploaded_file  # Track the uploaded file
+                                st.success("✅ Ảnh đã upload thành công!")
+                            else:
+                                st.error(f"Lỗi upload: {upload_data['error']}")
+                        except Exception as e:
+                            st.error(f"Lỗi khi upload: {e}")
+
+                    # Show background selection after upload
+                    if "uploaded_foreground" in st.session_state and st.session_state.uploaded_foreground:
+                        st.divider()
+                        # Initialize uploaded_template if not already set
+                        if "uploaded_template" not in st.session_state:
+                            background = fetch_random_background()
+                            fg_path = st.session_state.uploaded_foreground.get("foreground_path")
+                            fg_url = st.session_state.uploaded_foreground.get("foreground_url")
+                            st.session_state.uploaded_template = {
+                                "foreground_path": fg_path,
+                                "background_path": background.get("background_path"),
+                                "foreground_url": fg_url,
+                                "background_url": background.get("background_url")
+                            }
+                        
+                        # Show uploaded foreground and background
+                        uploaded_template = st.session_state.uploaded_template
+                        if uploaded_template.get('foreground_url'):
+                            st.image(uploaded_template['foreground_url'], caption="Ảnh đã upload", width=200)
+                        
+                        if uploaded_template.get('background_url'):
+                            st.image(uploaded_template['background_url'], caption="Nền ngẫu nhiên", width=200)
+                            if st.button("🔄 Đổi nền", key="change_uploaded_bg", use_container_width=True):
+                                new_bg = fetch_random_background()
+                                fg_path = uploaded_template.get("foreground_path")
+                                fg_url = uploaded_template.get("foreground_url")
+                                st.session_state.uploaded_template = {
+                                    "foreground_path": fg_path,
+                                    "background_path": new_bg.get("background_path"),
+                                    "foreground_url": fg_url,
+                                    "background_url": new_bg.get("background_url")
+                                }
+                                st.rerun()
+        
+        # Always store the selected aspect ratio in session state
+        st.session_state.selected_aspect_ratio = selected_aspect_ratio
+        
+        st.divider()
+        generate_btn = st.button("🎨 Tạo thiệp", type="primary", use_container_width=True)
+        
+        # Handle generate button click
         if generate_btn:
             if not greeting_text:
                 st.error("Vui lòng nhập yêu cầu nội dung thiệp!")
             else:
                 selected_template_gen = None
-                if mode == "Ngẫu nhiên" and "random_template" in st.session_state:
+                if not customize_mode:
+                    # Default mode - use random template for birthday
+                    selected_template_gen = None  # Will trigger random template selection in backend
+                elif mode == "Ngẫu nhiên" and "random_template" in st.session_state:
                     selected_template_gen = st.session_state.random_template
                 elif mode == "Chọn mẫu" and "selected_template" in st.session_state:
                     selected_template_gen = st.session_state.selected_template
@@ -259,15 +328,6 @@ def main():
                         
                 logger.info(f"Payload for card generation: {payload}")
                 
-                if "selected_template" in st.session_state:
-                    del st.session_state["selected_template"]
-                if "random_template" in st.session_state:
-                    del st.session_state["random_template"]
-                if "uploaded_template" in st.session_state:
-                    del st.session_state["uploaded_template"]
-                if "uploaded_foreground" in st.session_state:
-                    del st.session_state["uploaded_foreground"]
-
                 with st.status("Đang tạo thiệp...", expanded=True):
                     try:
                         resp = requests.post(f"{BACKEND_URL}/generate-card", json=payload)
@@ -278,24 +338,34 @@ def main():
                         st.rerun()
                     except Exception as e:
                         st.error(f"Lỗi khi tạo thiệp: {e}")
-    
+
     with right_col:
+        # Căn giữa cột thứ 2
         st.markdown(
-            "<div style='height: 60px;'></div>",
+            """
+            <div style="display: flex; flex-direction: column; align-items: center; text-align: center;">
+            """, 
             unsafe_allow_html=True
         )
+        
+        st.markdown("<h3 style='text-align: center;'>Kết quả</h3>", unsafe_allow_html=True)
         
         if "generated_card" in st.session_state:
             card_data = st.session_state.generated_card
             card_url = card_data.get("card_url")
             
             if card_url:
-                st.success("Thiệp đã tạo thành công!")
-                img_col1, img_col2, img_col3 = st.columns([0.2, 0.6, 0.2])
-                with img_col2:
-                    st.image(card_url, width=250)
+                col1, col2, col3 = st.columns([3, 2, 3])
+                with col2:
+                    st.success("✅ Thiệp đã tạo thành công!")
                 
-                col1, col2, col3 = st.columns([0.2, 0.6, 0.2])
+                # Căn giữa ảnh
+                col1, col2, col3 = st.columns([3, 2, 3])
+                with col2:
+                    st.image(card_url, use_container_width=True)
+
+                # Căn giữa nút download
+                col1, col2, col3 = st.columns([3, 2, 3])
                 with col2:
                     try:
                         card_response = requests.get(card_url)
@@ -313,72 +383,9 @@ def main():
             else:
                 st.error("Không thể hiển thị thiệp")
         else:
-            if mode == "Chọn mẫu" and "selected_template" in st.session_state:
-                st.success("Mẫu đã chọn")
-                img_url = st.session_state.selected_template.get('merged_image_url', 
-                        f"{BACKEND_URL}/{st.session_state.selected_template['merged_image_path']}")
-                img_col1, img_col2, img_col3 = st.columns([0.2, 0.6, 0.2])
-                with img_col2:
-                    st.image(img_url, width=200)
-            elif mode == "Ngẫu nhiên" and "random_template" in st.session_state:
-                st.success("Mẫu ngẫu nhiên")
-                template = st.session_state.random_template
-                img_url = template.get("merged_image_url", f"{BACKEND_URL}/{template['merged_image_path']}")
-                img_col1, img_col2, img_col3 = st.columns([0.2, 0.6, 0.2])
-                with img_col2:
-                    st.image(img_url, width=200)
-            elif mode == "Tải ảnh lên" and "uploaded_template" in st.session_state:
-                st.success("Ảnh đã upload")
-                img_col1, img_col2, img_col3 = st.columns([0.2, 0.6, 0.2])
-                with img_col2:
-                    uploaded_template = st.session_state.uploaded_template
-                    if uploaded_template.get('foreground_url'):
-                        st.image(uploaded_template['foreground_url'], caption="Ảnh đã upload", width=200)
-                    else:
-                        st.info("Ảnh đang được xử lý...")
-                    st.divider()
-                    if uploaded_template.get('background_url'):
-                        st.image(uploaded_template['background_url'], caption="Nền ngẫu nhiên", width=200)
-                        if st.button("🔄 Đổi nền", key="change_uploaded_bg", use_container_width=True):
-                            new_bg = fetch_random_background()
-                            fg_path = uploaded_template.get("foreground_path")
-                            fg_url = uploaded_template.get("foreground_url")
-                            st.session_state.uploaded_template = {
-                                "foreground_path": fg_path,
-                                "background_path": new_bg.get("background_path"),
-                                "foreground_url": fg_url,
-                                "background_url": new_bg.get("background_url")
-                            }
-                            st.rerun()
-            elif mode == "Tải ảnh lên" and "uploaded_template" in st.session_state:
-                st.success("Ảnh đã upload")
-                img_col1, img_col2, img_col3 = st.columns([0.2, 0.6, 0.2])
-                with img_col2:
-                    uploaded_template = st.session_state.uploaded_template
-                    if uploaded_template.get('foreground_url'):
-                        st.image(uploaded_template['foreground_url'], caption="Ảnh đã upload", width=200)
-                    else:
-                        st.info("Ảnh đang được xử lý...")
-                    st.divider()
-                    if uploaded_template.get('background_url'):
-                        st.image(uploaded_template['background_url'], caption="Nền ngẫu nhiên", width=200)
-                        if st.button("🔄 Đổi nền", key="change_uploaded_bg", use_container_width=True):
-                            new_bg = fetch_random_background()
-                            # Update only the background-related fields
-                            st.session_state.uploaded_template.update({
-                                "background_path": new_bg.get("background_path"),
-                                "background_url": new_bg.get("background_url")
-                            })
-                            st.rerun()
-            else:
-                if mode == "Chọn mẫu" and "selected_template" not in st.session_state:
-                    st.info("Chọn mẫu để xem preview")
-                elif mode == "Ngẫu nhiên" and "random_template" not in st.session_state:
-                    st.info("Thiệp sẽ hiển thị ở đây sau khi tạo")
-                elif mode == "Tải ảnh lên" and "uploaded_foreground" not in st.session_state:
-                    pass
-                else:
-                    st.info("Thiệp sẽ hiển thị ở đây sau khi tạo")
+            st.info("Thiệp sẽ hiển thị ở đây sau khi tạo")
+        
+        st.markdown("</div>", unsafe_allow_html=True)
 
 if __name__ == "__main__":
     main()

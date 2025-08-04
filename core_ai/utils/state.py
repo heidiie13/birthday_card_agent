@@ -33,5 +33,5 @@ class State(BaseModel):
 
     # Text params
     text_position: Optional[str] = None
-    text_margin_ratio: float = 0.07
+    text_margin_ratio: float = 0.05
     text_ratio: Optional[float] = None

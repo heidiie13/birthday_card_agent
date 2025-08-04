@@ -128,15 +128,6 @@ def main():
                         help="Chọn loại thiệp chúc bạn muốn tạo"
                     )
                 
-                # aspect_options = {"3:4": 3/4, "4:3": 4/3}
-                # selected_aspect_label = st.radio(
-                #     "Chọn tỉ lệ khung hình:",
-                #     list(aspect_options.keys()),
-                #     horizontal=True,
-                #     key="aspect_ratio_selection"
-                # )
-                # selected_aspect_ratio = aspect_options[selected_aspect_label]
-                
                 if "current_aspect_ratio" not in st.session_state:
                     st.session_state.current_aspect_ratio = selected_aspect_ratio
                 elif st.session_state.current_aspect_ratio != selected_aspect_ratio:
@@ -153,11 +144,8 @@ def main():
                             "foreground_path": fg_path,
                             "background_path": bg_path,
                             "foreground_url": fg_url,
-
-
                             "background_url": background.get("background_url"),
                             "aspect_ratio": aspect_ratio
-
                         }
                 
                 st.divider()
@@ -343,15 +331,15 @@ def main():
             card_url = card_data.get("card_url")
             
             if card_url:
-                col1, col2, col3 = st.columns([3, 2, 3])
+                col1, col2, col3 = st.columns([2, 2, 2])
                 with col2:
                     st.success("✅ Thiệp đã tạo thành công!")
                 
-                col1, col2, col3 = st.columns([3, 2, 3])
+                col1, col2, col3 = st.columns([2, 2, 2])
                 with col2:
                     st.image(card_url, use_container_width=True)
 
-                col1, col2, col3 = st.columns([3, 2, 3])
+                col1, col2, col3 = st.columns([2, 2, 2])
                 with col2:
                     try:
                         card_response = requests.get(card_url)

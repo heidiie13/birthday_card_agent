@@ -338,15 +338,15 @@ def main():
             card_url = card_data.get("card_url")
             
             if card_url:
-                col1, col2, col3 = st.columns([3, 2, 3])
+                col1, col2, col3 = st.columns([2, 2, 2])
                 with col2:
                     st.success("✅ Thiệp đã tạo thành công!")
                 
-                col1, col2, col3 = st.columns([3, 2, 3])
+                col1, col2, col3 = st.columns([2, 2, 2])
                 with col2:
                     st.image(card_url, use_container_width=True)
 
-                col1, col2, col3 = st.columns([3, 2, 3])
+                col1, col2, col3 = st.columns([2, 2, 2])
                 with col2:
                     try:
                         card_response = requests.get(card_url)

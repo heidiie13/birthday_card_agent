@@ -4,7 +4,7 @@ from typing import List
 
 import random
 from fastapi import HTTPException, Request, UploadFile
-from api.models import BackgroundResponse, TemplateResponse, GenerateRequest, GenerateResponse
+from api.models import BackgroundResponse, ImageUploadResponse, TemplateResponse, GenerateRequest, GenerateResponse
 
 from core_ai.utils.tools import get_templates_by_type, get_random_template_by_type
 from core_ai.graph import build_card_gen_graph
@@ -58,6 +58,29 @@ def get_random_backgrounds_service(req: Request) -> BackgroundResponse:
         background_path=background_path
     )
 
+def get_backgrounds_service(request: Request, page: int = 1, page_size: int = 10) -> List[BackgroundResponse]:
+    backgrounds_dir = os.path.join(STATIC_DIR, "images", "backgrounds")
+    if not os.path.exists(backgrounds_dir):
+        raise HTTPException(status_code=404, detail="Backgrounds directory not found")
+    background_files = [f for f in os.listdir(backgrounds_dir) if f.endswith((".png", ".jpg", ".jpeg", ".webp"))]
+    if not background_files:
+        raise HTTPException(status_code=404, detail="No background images found")
+    
+    start = (page - 1) * page_size
+    end = start + page_size
+    paged_backgrounds = background_files[start:end]
+    
+    result = []
+    for bg_file in paged_backgrounds:
+        bg_path = os.path.join(backgrounds_dir, bg_file)
+        bg_url = str(request.base_url).rstrip("/") + f"/{bg_path.replace(os.sep, '/')}"
+        result.append(BackgroundResponse(
+            background_url=bg_url,
+            background_path=bg_path
+        ))
+    
+    return result
+
 def generate_card_service(req: GenerateRequest, request: Request) -> GenerateResponse:
     input = {
         "greeting_text_instructions": req.greeting_text_instructions,
@@ -82,8 +105,7 @@ def generate_card_service(req: GenerateRequest, request: Request) -> GenerateRes
     card_url = str(request.base_url).rstrip("/") + f"/{card_path.replace(os.sep, '/')}"
     return GenerateResponse(card_url=card_url)
 
-
-def upload_images_service(file: UploadFile, request: Request) -> dict:
+def upload_images_service(file: UploadFile, request: Request) -> ImageUploadResponse:
     allowed_ext = (".png", ".jpg", ".jpeg", ".webp")
     if not file.filename.lower().endswith(allowed_ext):
         raise ValueError("Only image files are allowed (png, jpg, jpeg, webp)")
@@ -96,4 +118,4 @@ def upload_images_service(file: UploadFile, request: Request) -> dict:
         shutil.copyfileobj(file.file, buffer)
 
     file_url = str(request.base_url).rstrip("/") + f"/{file_path.replace(os.sep, '/')}"
-    return {"foreground_url": file_url, "foreground_path": file_path}
+    return ImageUploadResponse(foreground_url=file_url, foreground_path=file_path)

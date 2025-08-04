@@ -60,7 +60,7 @@ def main():
             height=100,
             key="greeting_text_input"
         )
-        
+
         mode = "Ngẫu nhiên"
         aspect_options = {"3:4": 3/4, "4:3": 4/3}
         selected_aspect_label = st.radio(
@@ -127,15 +127,6 @@ def main():
                         }.get(x, x),
                         help="Chọn loại thiệp chúc bạn muốn tạo"
                     )
-                
-                # aspect_options = {"3:4": 3/4, "4:3": 4/3}
-                # selected_aspect_label = st.radio(
-                #     "Chọn tỉ lệ khung hình:",
-                #     list(aspect_options.keys()),
-                #     horizontal=True,
-                #     key="aspect_ratio_selection"
-                # )
-                # selected_aspect_ratio = aspect_options[selected_aspect_label]
                 
                 if "current_aspect_ratio" not in st.session_state:
                     st.session_state.current_aspect_ratio = selected_aspect_ratio
@@ -212,7 +203,9 @@ def main():
                     if "random_template" in st.session_state:
                         template = st.session_state.random_template
                         img_url = template.get("merged_image_url", f"{BACKEND_URL}/{template['merged_image_path']}")
-                        st.image(img_url, caption="Mẫu ngẫu nhiên", width=200)
+                        col1, col2, col3 = st.columns([1, 2, 1])
+                        with col2:
+                            st.image(img_url, caption="Mẫu ngẫu nhiên", use_container_width=True)
                 
                 elif mode == "Tải ảnh lên":
                     st.markdown("**Upload ảnh**")

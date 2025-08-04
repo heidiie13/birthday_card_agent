@@ -362,7 +362,9 @@ def main():
             else:
                 st.error("Không thể hiển thị thiệp")
         else:
-            st.info("Thiệp sẽ hiển thị ở đây sau khi tạo")
+            col1, col2, col3 = st.columns([3, 2, 3])
+            with col2:
+                st.info("Thiệp sẽ hiển thị ở đây sau khi tạo")
         
         st.markdown("</div>", unsafe_allow_html=True)
 

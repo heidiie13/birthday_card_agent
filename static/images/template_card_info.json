@@ -118,5 +118,205 @@
     "merge_margin_ratio": 0.05,
     "merge_foreground_ratio": 0.5,
     "card_type": "wedding"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/giangsinh_1.png",
+    "background_path": "static/images/backgrounds/back_8.jpg",
+    "merged_image_path": "static/images/card_types/christmas/18b0ee14-22d1-44ae-b509-3901e1370b2c.png",
+    "aspect_ratio": 0.75,
+    "merge_position": "top",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "christmas"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/giangsinh_2.png",
+    "background_path": "static/images/backgrounds/back_12.webp",
+    "merged_image_path": "static/images/card_types/christmas/5bac899b-057b-4b75-9439-5bf001f68c72.png",
+    "aspect_ratio": 0.75,
+    "merge_position": "top",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "christmas"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/giangsinh_3.png",
+    "background_path": "static/images/backgrounds/back_13.jpeg",
+    "merged_image_path": "static/images/card_types/christmas/57e7afaf-a2b2-4823-ae29-ab473fbd60bd.png",
+    "aspect_ratio": 0.75,
+    "merge_position": "top",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "christmas"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/giangsinh_4.png",
+    "background_path": "static/images/backgrounds/back_30.png",
+    "merged_image_path": "static/images/card_types/christmas/d33de7f0-9773-4a2e-a8f9-5b383be1bdca.png",
+    "aspect_ratio": 0.75,
+    "merge_position": "top",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "christmas"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/chung_1.png",
+    "background_path": "static/images/backgrounds/back_26.jpeg",
+    "merged_image_path": "static/images/card_types/general/bd4bea91-f4df-4ca7-9205-f8ea9c756d8e.png",
+    "aspect_ratio": 0.75,
+    "merge_position": "top",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "general"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/chung_2.png",
+    "background_path": "static/images/backgrounds/back_22.webp",
+    "merged_image_path": "static/images/card_types/general/28c13f32-f68c-4323-9596-4ce6d81e4365.png",
+    "aspect_ratio": 0.75,
+    "merge_position": "top",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "general"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/chung_3.png",
+    "background_path": "static/images/backgrounds/chucs.png",
+    "merged_image_path": "static/images/card_types/general/dbda7ee6-8ea5-4ab4-9ba6-6416ec399a7e.png",
+    "aspect_ratio": 0.75,
+    "merge_position": "top",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "general"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/chung_4.png",
+    "background_path": "static/images/backgrounds/back_31.jpeg",
+    "merged_image_path": "static/images/card_types/general/5a901c59-4278-49b4-81bc-48f2d5a1f4c5.png",
+    "aspect_ratio": 0.75,
+    "merge_position": "top",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "general"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/nammoi_1.png",
+    "background_path": "static/images/backgrounds/back_10.webp",
+    "merged_image_path": "static/images/card_types/new_year/b2da125b-fdbb-4288-a11f-2034ddd43468.png",
+    "aspect_ratio": 0.75,
+    "merge_position": "top",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "new_year"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/nammoi_2.png",
+    "background_path": "static/images/backgrounds/back_5.webp",
+    "merged_image_path": "static/images/card_types/new_year/3585b985-8da8-41a2-8485-77864468c647.png",
+    "aspect_ratio": 0.75,
+    "merge_position": "top",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "new_year"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/nammoi_3.png",
+    "background_path": "static/images/backgrounds/chucs.png",
+    "merged_image_path": "static/images/card_types/new_year/a2d1def5-5d0a-4910-8a06-baa4582aea03.png",
+    "aspect_ratio": 0.75,
+    "merge_position": "top",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "new_year"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/nammoi_4.png",
+    "background_path": "static/images/backgrounds/back_27.jpg",
+    "merged_image_path": "static/images/card_types/new_year/62ee2005-3d0c-40dc-b889-7a74cb74016c.png",
+    "aspect_ratio": 0.75,
+    "merge_position": "top",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "new_year"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/20_11_1.png",
+    "background_path": "static/images/backgrounds/chucs2.png",
+    "merged_image_path": "static/images/card_types/teacher_day/557afef0-171f-4260-8648-8a7d1fa9feb7.png",
+    "aspect_ratio": 0.75,
+    "merge_position": "top",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "teacher_day"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/20_11_2.png",
+    "background_path": "static/images/backgrounds/back_10.webp",
+    "merged_image_path": "static/images/card_types/teacher_day/d0cc08b5-18ee-4440-9057-e45ef7f550c1.png",
+    "aspect_ratio": 0.75,
+    "merge_position": "top",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "teacher_day"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/20_11_3.png",
+    "background_path": "static/images/backgrounds/back_10.webp",
+    "merged_image_path": "static/images/card_types/teacher_day/f68af8c8-b6e7-470d-971f-d87c8ece4194.png",
+    "aspect_ratio": 0.75,
+    "merge_position": "top",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "teacher_day"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/20_11_4.png",
+    "background_path": "static/images/backgrounds/back_16.jpg",
+    "merged_image_path": "static/images/card_types/teacher_day/47e0dcba-7337-4444-b34d-560035acf486.png",
+    "aspect_ratio": 0.75,
+    "merge_position": "top",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "teacher_day"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/valentine_1.png",
+    "background_path": "static/images/backgrounds/back_6.jpeg",
+    "merged_image_path": "static/images/card_types/valentine/92f5eefe-dc9e-4791-87cd-d4a3cc8d8df7.png",
+    "aspect_ratio": 0.75,
+    "merge_position": "top",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "valentine"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/valentine_2.png",
+    "background_path": "static/images/backgrounds/back_8.jpg",
+    "merged_image_path": "static/images/card_types/valentine/43b951df-656e-4882-a418-ad462d3d1435.png",
+    "aspect_ratio": 0.75,
+    "merge_position": "top",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "valentine"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/valentine_3.png",
+    "background_path": "static/images/backgrounds/back_16.jpg",
+    "merged_image_path": "static/images/card_types/valentine/6cb3d02c-7ddb-4a72-a1ee-00d2785047ac.png",
+    "aspect_ratio": 0.75,
+    "merge_position": "top",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "valentine"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/valentine_4.png",
+    "background_path": "static/images/backgrounds/back_22.webp",
+    "merged_image_path": "static/images/card_types/valentine/47687e0e-d87d-4618-b3a8-30aa6e35d10c.png",
+    "aspect_ratio": 0.75,
+    "merge_position": "top",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "valentine"
   }
 ]

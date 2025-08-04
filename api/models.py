@@ -6,6 +6,12 @@ class CardType(str, Enum):
     birthday = "birthday"
     graduation = "graduation"
     wedding = "wedding"
+    valentine = "valentine"
+    new_year = "new_year"
+    general = "general"
+    christmas = "christmas"
+    teacher_day = "teacher_day"
+    
 
 class GenerateRequest(BaseModel):
     greeting_text_instructions: str

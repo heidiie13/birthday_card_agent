@@ -156,7 +156,7 @@ def merge_node(state: State) -> State:
 
     if state.aspect_ratio > 1:
         state.merge_position = "right"
-        state.text_ratio = 1 - state.merge_foreground_ratio - 0.05
+        state.text_ratio = 1 - state.merge_foreground_ratio - 0.02
         state.title_font_size = 140
         
     state.text_position = position_map.get(state.merge_position)

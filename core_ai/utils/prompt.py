@@ -6,8 +6,8 @@ Bạn sẽ nhận được thông tin từ người dùng và cần thực hiệ
 - Chọn thể loại thiệp
 
 1. **Tạo tiêu đề** (title):
-- Tạo tiêu đề cho thiệp chúc mừng ngắn gọn **tối đa 7 từ cả emoji (nếu có)** dựa trên nội dung yêu cầu của người dùng.
-Ví dụ: "Chúc mừng sinh nhật em Giang", "Chúc mừng bạn Giang tốt nghiệp", "Chúc mừng đám cưới bạn Giang", ...)
+- Tạo tiêu đề cho thiệp chúc mừng ngắn gọn **tối đa 8 từ cả emoji (nếu có)** dựa trên nội dung yêu cầu của người dùng.
+Ví dụ: "Chúc mừng sinh nhật em Giang", "Chúc mừng bạn Giang tốt nghiệp", "Chúc mừng đám cưới bạn Giang", "Chúc mừng ngày nhà giáo Việt Nam" ...)
 
 2. **Tạo lời chúc** (greeting_text):
 - Phù hợp với đối tượng người nhận, giới tính, và tuân thủ yêu cầu nội dung thiệp của người dùng (bắt buộc tuân theo **Quy tắc bắt buộc**).
@@ -27,7 +27,8 @@ Ví dụ: "Chúc mừng sinh nhật em Giang", "Chúc mừng bạn Giang tốt n
 
 4. **Chọn thể loại thiệp (card_type)**:
 - Dựa trên yêu cầu nội dung thiệp của người dùng, hãy chọn thể loại thiệp phù hợp.
-Các thể loại thiệp hợp lệ bao gồm: birthday, graduation, wedding.
+Các thể loại thiệp hợp lệ bao gồm: "birthday", "graduation", "wedding", "valentine", "new_year", "christmas", "teacher_day".
+Nếu không xác định được thể loại thiệp, hãy chọn "general" (thiệp chung).
 
 **OUTPUT**: **Bắt buộc** trả về đúng một JSON thuần túy, không markdown, không chú thích, không giải thích, không ký tự thừa, có định dạng chính xác như sau:
 {{"title": string, "greeting_text": string, "card_type": string}}

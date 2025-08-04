@@ -58,11 +58,31 @@ def main():
         )
         
         card_type = "birthday"
+        card_type_options = [
+            "birthday",
+            "graduation",
+            "wedding",
+            "valentine",
+            "new_year",
+            "general",
+            "christmas",
+            "teacher_day"
+        ]
+        card_type_labels = {
+            "birthday": "Sinh nhật",
+            "graduation": "Tốt nghiệp",
+            "wedding": "Cưới",
+            "valentine": "Valentine",
+            "new_year": "Năm mới",
+            "general": "Chung",
+            "christmas": "Giáng sinh",
+            "teacher_day": "Ngày nhà giáo"
+        }
         if mode in ["Chọn mẫu", "Ngẫu nhiên"]:
             card_type = st.selectbox(
                 "Loại thiệp:",
-                ["birthday", "graduation", "wedding"],
-                format_func=lambda x: "Sinh nhật" if x == "birthday" else "Tốt nghiệp" if x == "graduation" else "Cưới",
+                card_type_options,
+                format_func=lambda x: card_type_labels.get(x, x),
                 help="Chọn loại thiệp chúc bạn muốn tạo"
             )
         

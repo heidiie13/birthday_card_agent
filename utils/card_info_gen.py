@@ -74,13 +74,29 @@ def process_txt_file(txt_path: str, json_path: str, card_type: str):
 if __name__ == "__main__":
     # Example usage
     process_txt_file(
-        txt_path="graduation.txt",
+        txt_path="christmas.txt",
         json_path="static/images/template_card_info.json",
-        card_type="graduation"
+        card_type="christmas"
     )
     
     process_txt_file(
-        txt_path="wedding.txt",
+        txt_path="general.txt",
         json_path="static/images/template_card_info.json",
-        card_type="wedding"
+        card_type="general"
+    )
+
+    process_txt_file(
+        txt_path="new_year.txt",
+        json_path="static/images/template_card_info.json",
+        card_type="new_year"
+    )
+    process_txt_file(
+        txt_path="teacher_day.txt",
+        json_path="static/images/template_card_info.json",
+        card_type="teacher_day"
+    )
+    process_txt_file(
+        txt_path="valentine.txt",
+        json_path="static/images/template_card_info.json",
+        card_type="valentine"
     )

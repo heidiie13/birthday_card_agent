@@ -137,18 +137,18 @@ def main():
                     if mode == "Tải ảnh lên" and "uploaded_template" in st.session_state and "uploaded_foreground" in st.session_state:
                         fg_path = st.session_state.uploaded_foreground.get("foreground_path")
                         fg_url = st.session_state.uploaded_foreground.get("foreground_url")
-
-                        aspect_ratio = st.session_state.get("selected_aspect_ratio", 3/4)
+                        
+                        # Get existing background info from uploaded_template
+                        current_template = st.session_state.uploaded_template
+                        bg_path = current_template.get("background_path")
+                        bg_url = current_template.get("background_url")
 
                         st.session_state.uploaded_template = {
                             "foreground_path": fg_path,
                             "background_path": bg_path,
                             "foreground_url": fg_url,
-
-
-                            "background_url": background.get("background_url"),
-                            "aspect_ratio": aspect_ratio
-
+                            "background_url": bg_url,
+                            "aspect_ratio": selected_aspect_ratio
                         }
                 
                 st.divider()
@@ -254,7 +254,8 @@ def main():
                                 "foreground_path": fg_path,
                                 "background_path": background.get("background_path"),
                                 "foreground_url": fg_url,
-                                "background_url": background.get("background_url")
+                                "background_url": background.get("background_url"),
+                                "aspect_ratio": selected_aspect_ratio
                             }
                         
                         uploaded_template = st.session_state.uploaded_template
@@ -271,7 +272,8 @@ def main():
                                     "foreground_path": fg_path,
                                     "background_path": new_bg.get("background_path"),
                                     "foreground_url": fg_url,
-                                    "background_url": new_bg.get("background_url")
+                                    "background_url": new_bg.get("background_url"),
+                                    "aspect_ratio": selected_aspect_ratio
                                 }
                                 st.rerun()
         

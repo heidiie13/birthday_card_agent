@@ -32,9 +32,8 @@ def _get_model() -> Runnable:
             temperature=0.7,
             default_headers={"App-Code": "fresher"},
             extra_body={
-                # ...
                 "chat_template_kwargs": {
-                    "enable_thinking": False  # Hoặc False để tắt
+                    "enable_thinking": False  
                 }
             }
         )
@@ -152,7 +151,6 @@ def merge_node(state: State) -> State:
 
     greeting_words = len(state.greeting_text.split()) if state.greeting_text else 0
 
-    # Set merge_foreground_ratio based on aspect ratio and greeting length
     if greeting_words < 40:
         state.merge_foreground_ratio = 1/2
     else:
@@ -166,13 +164,11 @@ def merge_node(state: State) -> State:
         state.title_font_size = 150
         
     state.text_position = position_map.get(state.merge_position)
-    # Generate output path
+
     output_path = f"static/images/cards/{uuid.uuid4().hex}.png"
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
     
-    # Check if this is a user upload (no merged_image_path provided)
     if not state.merged_image_path:
-        # User upload - use merge with blending
         logger.info("Using merge with blending for user upload")
         merge_foreground_background_with_blending(
             foreground_path=state.foreground_path,
@@ -183,7 +179,6 @@ def merge_node(state: State) -> State:
             merge_position=state.merge_position,
         )
     else:
-        # Template selection - use normal merge
         logger.info("Using normal merge for template")
         merge_foreground_background(
             foreground_path=state.foreground_path,

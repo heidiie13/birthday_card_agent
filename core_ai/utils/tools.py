@@ -53,7 +53,6 @@ def merge_foreground_background_with_blending(
     standard_height = 1600
     standard_width = int(standard_height * aspect_ratio)
 
-    # Load and crop background
     bg = Image.open(background_path).convert('RGB')
     bg_w, bg_h = bg.size
     if bg_w / bg_h > aspect_ratio:
@@ -66,7 +65,6 @@ def merge_foreground_background_with_blending(
         bg = bg.crop((0, top, bg_w, top + new_h))
     bg = bg.resize((standard_width, standard_height), Image.LANCZOS)
 
-    # Load foreground
     fg = Image.open(foreground_path).convert('RGBA')
     fg_aspect = fg.width / fg.height
 
@@ -91,7 +89,7 @@ def merge_foreground_background_with_blending(
                     alpha = 255
                 gradient.putpixel((0, y), alpha)
 
-        else:  # 'bottom'
+        else:  
             blend_start = int(fg_height * foreground_ratio)
             for y in range(fg_height):
                 if y > blend_start:
@@ -125,7 +123,7 @@ def merge_foreground_background_with_blending(
                     alpha = 255
                 gradient.putpixel((x, 0), alpha)
 
-        else:  # 'right'
+        else:  
             blend_start = int(fg_width * foreground_ratio)
             for x in range(fg_width):
                 if x > blend_start:
@@ -141,16 +139,13 @@ def merge_foreground_background_with_blending(
     else:
         raise ValueError("merge_position must be one of 'top', 'bottom', 'left', 'right'")
 
-    # Apply alpha mask
     r, g, b, a = fg.split()
     a = ImageChops.multiply(a, alpha_mask)
     fg = Image.merge('RGBA', (r, g, b, a))
 
-    # Paste onto background
     result = bg.copy()
     result.paste(fg, (fg_x, fg_y), fg)
 
-    # Add logo if exists
     if logo_path and os.path.exists(logo_path):
         logo = Image.open(logo_path).convert("RGBA")
         logo_h = int(standard_height * logo_scale)
@@ -214,40 +209,33 @@ def merge_foreground_background(
     bg = Image.open(background_path).convert('RGB')
     fg = Image.open(foreground_path).convert('RGBA')
 
-    # Standard size
     standard_height = 1600
     standard_width = int(standard_height * aspect_ratio)
     
-    # Crop background to target aspect ratio
     target_ratio = aspect_ratio
     bg_w, bg_h = bg.size
     if bg_w / bg_h > target_ratio:
-        # Too wide, crop width
+     
         new_w = int(bg_h * target_ratio)
         left = (bg_w - new_w) // 2
         bg = bg.crop((left, 0, left + new_w, bg_h))
     else:
-        # Too tall, crop height
         new_h = int(bg_w / target_ratio)
         top = (bg_h - new_h) // 2
         bg = bg.crop((0, top, bg_w, top + new_h))
     
-    # Resize background to standard size early
     bg = bg.resize((standard_width, standard_height), Image.LANCZOS)
     bg_w, bg_h = standard_width, standard_height
 
     margin = int(min(bg_w, bg_h) * margin_ratio)
-    # Ensure foreground_ratio does not exceed 1
     if foreground_ratio > 1:
         foreground_ratio = 1.0
     fg_w, fg_h = fg.size
     fg_ratio = fg_w / fg_h
 
-    # Always allow 4 positions: top, bottom, left, right
     if merge_position in ['top', 'bottom']:
         fg_max_h = int(bg_h * foreground_ratio) - margin
         fg_max_w = bg_w - 2 * margin
-        # Fit foreground inside fg_max_w x fg_max_h
         if fg_max_w / fg_max_h > fg_ratio:
             new_fg_h = fg_max_h
             new_fg_w = int(fg_ratio * new_fg_h)
@@ -281,7 +269,6 @@ def merge_foreground_background(
     result = bg.copy()
     result.paste(fg, (x, y), fg)
 
-    # Add logo if exists
     if logo_path and os.path.exists(logo_path):
         logo = Image.open(logo_path).convert("RGBA")
         logo_h = int(standard_height * logo_scale)
@@ -400,7 +387,6 @@ def add_text_to_image(
         base_x = W - text_area_w - margin
         base_y = margin + (text_area_h - (title_h + text_h)) // 2
 
-    # Calculate centered positions for title and text separately
     title_x = base_x + (text_area_w - title_w) // 2 if title else base_x
     text_x = base_x + (text_area_w - text_w) // 2
 

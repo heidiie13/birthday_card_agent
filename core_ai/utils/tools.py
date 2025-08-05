@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 from collections import Counter
 import random
@@ -6,6 +7,8 @@ from typing import Optional
 from PIL import ImageDraw, ImageFont, Image, ImageDraw, ImageFont, ImageChops
 from pilmoji import Pilmoji
 from pilmoji.source import GoogleEmojiSource
+
+logger = logging.getLogger(__name__)
 
 def get_dominant_color(image_path: str, resize=50) -> str:
     if not os.path.exists(image_path):
@@ -79,28 +82,47 @@ def merge_foreground_background_with_blending(
 
         gradient = Image.new('L', (1, fg_height), color=0x00)
         blend_len = int(fg_height * blend_ratio)
+        if fg_height <= standard_height * 2/3:
+            if merge_position == 'top':
+                # Blend only at the bottom edge
+                blend_start = fg_height - blend_len
+                for y in range(fg_height):
+                    if y < blend_start:
+                        alpha = 255
+                    else:
+                        alpha = int(255 * (fg_height - y) / blend_len)
+                    gradient.putpixel((0, y), alpha)
+                logger.info("Blending at bottom edge")
+            else:  # 'bottom'
+                # Blend only at the top edge
+                for y in range(fg_height):
+                    if y < blend_len:
+                        alpha = int(255 * y / blend_len)
+                    else:
+                        alpha = 255
+                    gradient.putpixel((0, y), alpha)
+        else:
+            if merge_position == 'bottom':
+                blend_start = int(fg_height * (1 - foreground_ratio))
+                for y in range(fg_height):
+                    if y < blend_start:
+                        alpha = 0
+                    elif y < blend_start + blend_len:
+                        alpha = int(255 * (y - blend_start) / blend_len)
+                    else:
+                        alpha = 255
+                    gradient.putpixel((0, y), alpha)
 
-        if merge_position == 'bottom':
-            blend_start = int(fg_height * (1 - foreground_ratio))
-            for y in range(fg_height):
-                if y < blend_start:
-                    alpha = 0
-                elif y < blend_start + blend_len:
-                    alpha = int(255 * (y - blend_start) / blend_len)
-                else:
-                    alpha = 255
-                gradient.putpixel((0, y), alpha)
-
-        else:  # 'bottom'
-            blend_start = int(fg_height * foreground_ratio)
-            for y in range(fg_height):
-                if y > blend_start:
-                    alpha = 0
-                elif y > blend_start - blend_len:
-                    alpha = int(255 * (blend_start - y) / blend_len)
-                else:
-                    alpha = 255
-                gradient.putpixel((0, y), alpha)
+            else:  # 'top'
+                blend_start = int(fg_height * foreground_ratio)
+                for y in range(fg_height):
+                    if y > blend_start:
+                        alpha = 0
+                    elif y > blend_start - blend_len:
+                        alpha = int(255 * (blend_start - y) / blend_len)
+                    else:
+                        alpha = 255
+                    gradient.putpixel((0, y), alpha)
 
         alpha_mask = gradient.resize((fg_width, fg_height))
 
@@ -114,27 +136,47 @@ def merge_foreground_background_with_blending(
         gradient = Image.new('L', (fg_width, 1), color=0x00)
         blend_len = int(fg_width * blend_ratio)
 
-        if merge_position == 'right':
-            blend_start = int(fg_width * (1 - foreground_ratio))
-            for x in range(fg_width):
-                if x < blend_start:
-                    alpha = 0
-                elif x < blend_start + blend_len:
-                    alpha = int(255 * (x - blend_start) / blend_len)
-                else:
-                    alpha = 255
-                gradient.putpixel((x, 0), alpha)
+        if fg_width <= standard_width * 2/3:
+            if merge_position == 'left':
+                # Blend only at the right edge
+                blend_start = fg_width - blend_len
+                for x in range(fg_width):
+                    if x < blend_start:
+                        alpha = 255
+                    else:
+                        alpha = int(255 * (fg_width - x) / blend_len)
+                    gradient.putpixel((x, 0), alpha)
+            else:  # 'right'
+                # Blend only at the left edge
+                for x in range(fg_width):
+                    if x < blend_len:
+                        alpha = int(255 * x / blend_len)
+                    else:
+                        alpha = 255
+                    gradient.putpixel((x, 0), alpha)
+                logger.info("Blending at right edge")
+        else:
+            if merge_position == 'right':
+                blend_start = int(fg_width * (1 - foreground_ratio))
+                for x in range(fg_width):
+                    if x < blend_start:
+                        alpha = 0
+                    elif x < blend_start + blend_len:
+                        alpha = int(255 * (x - blend_start) / blend_len)
+                    else:
+                        alpha = 255
+                    gradient.putpixel((x, 0), alpha)
 
-        else:  # 'right'
-            blend_start = int(fg_width * foreground_ratio)
-            for x in range(fg_width):
-                if x > blend_start:
-                    alpha = 0
-                elif x > blend_start - blend_len:
-                    alpha = int(255 * (blend_start - x) / blend_len)
-                else:
-                    alpha = 255
-                gradient.putpixel((x, 0), alpha)
+            else:  # 'left'
+                blend_start = int(fg_width * foreground_ratio)
+                for x in range(fg_width):
+                    if x > blend_start:
+                        alpha = 0
+                    elif x > blend_start - blend_len:
+                        alpha = int(255 * (blend_start - x) / blend_len)
+                    else:
+                        alpha = 255
+                    gradient.putpixel((x, 0), alpha)
 
         alpha_mask = gradient.resize((fg_width, fg_height))
 

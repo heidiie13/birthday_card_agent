@@ -7,8 +7,8 @@ from fastapi import FastAPI, Request, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
-from api.models import ImageUploadResponse, TemplateResponse, GenerateRequest, GenerateResponse, CardType, AspectRatio
-from api.services import get_random_template_service, get_templates_service, generate_card_service, upload_images_service
+from api.models import ImageUploadResponse, TemplateResponse, GenerateRequest, GenerateResponse, CardType, AspectRatio, BackgroundUploadResponse, TemplateUploadResponse
+from api.services import get_random_template_service, get_templates_service, generate_card_service, upload_image_service, upload_background_service, upload_template_service
 
 app = FastAPI(title="Card Generator API")
 
@@ -77,4 +77,30 @@ def generate_card(req: GenerateRequest, request: Request):
 )
 async def upload_foreground(req: Request, file: UploadFile = File(...)):
     """Upload a foreground image for the card."""
-    return upload_images_service(file, req)
+    return upload_image_service(file, req)
+
+@app.post(
+    "/upload-background",
+    response_model=BackgroundUploadResponse,
+    description="(Admin only) Upload a background image and automatically add metadata to the system.",
+    tags=["Image Management"]
+)
+async def upload_background(req: Request, file: UploadFile = File(...)):
+    """Upload a background image and automatically add metadata (Admin only)."""
+    return upload_background_service(file, req)
+
+@app.post(
+    "/upload-template",
+    response_model=TemplateUploadResponse,
+    description="(Admin only) Upload foreground and background images to create a template with metadata.",
+    tags=["Template Management"]
+)
+async def upload_template(
+    req: Request,
+    card_type: CardType,
+    aspect_ratio: AspectRatio,
+    foreground_file: UploadFile = File(..., description="Foreground image file"),
+    background_file: UploadFile = File(..., description="Background image file")
+):
+    """Upload foreground and background images to create a template with metadata (Admin only)."""
+    return upload_template_service(foreground_file, background_file, card_type, aspect_ratio.value, req)

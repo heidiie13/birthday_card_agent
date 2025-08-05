@@ -486,13 +486,13 @@ def _get_wrapped(text, font, max_width):
         lines.append(line)
     return '\n'.join(lines)
 
-def get_templates_by_type(card_type: str, json_path: str = 'static/images/template_metadata.json', aspect_ratio: float = 3/4) -> list:
+def get_templates_by_type(card_type: str, aspect_ratio: float = 3/4, json_path: str = 'static/images/template_metadata.json') -> list:
     """
     Get a list of image info dictionaries by type from metadata file.
     Args:
         card_type (str): The type name (e.g., 'birthday')
-        json_path (str): Path to the JSON file containing template metadata.
         aspect_ratio (float): Aspect ratio of the templates to filter by.
+        json_path (str): Path to the JSON file containing template metadata.
     Returns:
         List[dict]: A list of image info dictionaries matching the type
     """
@@ -511,6 +511,7 @@ def get_random_template_by_type(card_type: str, aspect_ratio: float = 3/4) -> Op
     Get a random template image info dictionary by type from the template_card_info.json file.
     Args:
         card_type (str): The type name (e.g., 'birthday')
+        aspect_ratio (float): Aspect ratio of the templates to filter by.
     Returns:
         dict: A random image info dictionary matching the type, or None if not found
     """

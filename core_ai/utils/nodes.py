@@ -31,11 +31,11 @@ def _get_model() -> Runnable:
             model=os.getenv("MODEL_NAME"),
             temperature=0.7,
             default_headers={"App-Code": "fresher"},
-            extra_body={
-                "chat_template_kwargs": {
-                    "enable_thinking": False
-                }
-            }
+            # extra_body={
+            #     "chat_template_kwargs": {
+            #         "enable_thinking": False
+            #     }
+            # }
         )
     except Exception as e:
         logger.error(f"Error getting model: {e}")
@@ -163,10 +163,10 @@ def merge_node(state: State) -> State:
         state.merge_position = "right"
         state.text_ratio = 1 - state.merge_foreground_ratio - 0.02
         state.title_font_size = 150
-        state.font_size = 80
+        state.font_size = 100
 
     if state.merge_foreground_ratio < 1/2 and state.aspect_ratio < 1:
-        state.font_size = 70
+        state.font_size = 80
 
     state.text_position = position_map.get(state.merge_position)
     # Generate output path

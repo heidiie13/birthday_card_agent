@@ -47,7 +47,6 @@ def main():
     
         greeting_text = st.text_area(
             "Yêu cầu nội dung thiệp *",
-            placeholder="VD: Thiệp chúc mừng sinh nhật cho bé gái tên Linh",
             height=100,
             key="greeting_text_input"
         )
@@ -105,16 +104,35 @@ def main():
                 if mode in ["Chọn mẫu", "Ngẫu nhiên"]:
                     card_type = st.selectbox(
                         "Loại thiệp:",
-                        ["birthday", "graduation", "wedding", "valentine", "new_year", "general", "christmas", "teacher_day"],
+                        [
+                            "birthday", 
+                            "christmas", 
+                            "graduation", 
+                            "newyear", 
+                            "lunar_newyear", 
+                            "mid_autumn_festival", 
+                            "valentine", 
+                            "vietnam_teacherday", 
+                            "vietnam_nationalday", 
+                            "vietnam_womenday", 
+                            "wedding", 
+                            "international_womenday", 
+                            "general"
+                        ],
                         format_func=lambda x: {
                             "birthday": "Sinh nhật",
-                            "graduation": "Tốt nghiệp", 
-                            "wedding": "Cưới",
-                            "valentine": "Valentine",
-                            "new_year": "Năm mới",
-                            "general": "Tổng hợp",
                             "christmas": "Giáng sinh",
-                            "teacher_day": "Ngày nhà giáo"
+                            "graduation": "Tốt nghiệp", 
+                            "newyear": "Tết Dương lịch",
+                            "lunar_newyear": "Tết Nguyên đán",
+                            "mid_autumn_festival": "Tết Trung thu",
+                            "valentine": "Lễ tình nhân",
+                            "vietnam_teacherday": "Ngày Nhà giáo Việt Nam (20/11)",
+                            "vietnam_nationalday": "Quốc khánh Việt Nam (2/9)",
+                            "vietnam_womenday": "Ngày Phụ nữ Việt Nam (20/10)",
+                            "wedding": "Lễ cưới",
+                            "international_womenday": "Ngày Quốc tế Phụ nữ (8/3)",
+                            "general": "Thiệp chung"
                         }.get(x, x),
                         help="Chọn loại thiệp chúc bạn muốn tạo"
                     )

@@ -21,7 +21,7 @@ class State(BaseModel):
     title: Optional[str] = None
     font_color: Optional[str] = None
     font_path: Optional[str] = None
-    font_size: int = 75
+    font_size: int = 80
     title_font_path: Optional[str] = None
     title_font_size: int = 100
 
@@ -33,5 +33,5 @@ class State(BaseModel):
 
     # Text params
     text_position: Optional[str] = None
-    text_margin_ratio: float = 0.05
+    text_margin_ratio: float = 0.06
     text_ratio: Optional[float] = None

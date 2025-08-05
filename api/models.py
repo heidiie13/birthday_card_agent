@@ -34,21 +34,9 @@ class GenerateRequest(BaseModel):
             "example": {
                 "greeting_text_instructions": "Tạo lời chúc sinh nhật vui vẻ và ý nghĩa cho bạn thân",
                 "background_path": "static/images/backgrounds/back_23.png",
-                "foreground_path": "static/images/foregrounds/fore_8.png",
+                "foreground_path": "static/images/foregrounds/birthday_4.png",
                 "merged_image_path": "static/images/card_types/birthday/77cf8c00-0e67-4ea5-96e9-b29d530a3fbc.png",
                 "aspect_ratio": 0.75
-            }
-        }
-
-class BackgroundResponse(BaseModel):
-    background_url: str = Field(..., description="URL of the background image")
-    background_path: str = Field(..., description="Path to the background image")
-
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "background_url": "https://example.com/static/images/backgrounds/back_23.png",
-                "background_path": "static/images/backgrounds/back_23.png"
             }
         }
 

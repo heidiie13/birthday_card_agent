@@ -1,0 +1,4 @@
+static/images/foregrounds/christmas_1.png static/images/backgrounds/back_8.jpg
+static/images/foregrounds/christmas_2.png static/images/backgrounds/back_12.webp
+static/images/foregrounds/christmas_3.png static/images/backgrounds/back_13.jpeg
+static/images/foregrounds/christmas_4.png static/images/backgrounds/back_30.png

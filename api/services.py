@@ -2,9 +2,8 @@ import os
 import shutil
 from typing import List
 
-import random
 from fastapi import HTTPException, Request, UploadFile
-from api.models import BackgroundResponse, ImageUploadResponse, TemplateResponse, GenerateRequest, GenerateResponse
+from api.models import ImageUploadResponse, TemplateResponse, GenerateRequest, GenerateResponse
 
 from core_ai.utils.tools import get_templates_by_type, get_random_template_by_type
 from core_ai.graph import build_card_gen_graph
@@ -43,58 +42,19 @@ def get_random_template_service(card_type: str, aspect_ratio: float, request: Re
         raise HTTPException(status_code=404, detail="No template found")
     return TemplateResponse(**template)
 
-def get_random_backgrounds_service(req: Request) -> BackgroundResponse:
-    backgrounds_dir = os.path.join(STATIC_DIR, "images", "backgrounds")
-    if not os.path.exists(backgrounds_dir):
-        raise HTTPException(status_code=404, detail="Backgrounds directory not found")
-    background_files = [f for f in os.listdir(backgrounds_dir) if f.endswith((".png", ".jpg", ".jpeg", ".webp"))]
-    if not background_files:
-        raise HTTPException(status_code=404, detail="No background images found")
-    random_file = random.choice(background_files)
-    background_path = os.path.join(backgrounds_dir, random_file)
-    background_url = str(req.base_url).rstrip("/") + f"/{background_path.replace(os.sep, '/')}"
-    return BackgroundResponse(
-        background_url=background_url,
-        background_path=background_path
-    )
-
-def get_backgrounds_service(request: Request, page: int = 1, page_size: int = 10) -> List[BackgroundResponse]:
-    backgrounds_dir = os.path.join(STATIC_DIR, "images", "backgrounds")
-    if not os.path.exists(backgrounds_dir):
-        raise HTTPException(status_code=404, detail="Backgrounds directory not found")
-    background_files = [f for f in os.listdir(backgrounds_dir) if f.endswith((".png", ".jpg", ".jpeg", ".webp"))]
-    if not background_files:
-        raise HTTPException(status_code=404, detail="No background images found")
-    
-    start = (page - 1) * page_size
-    end = start + page_size
-    paged_backgrounds = background_files[start:end]
-    
-    result = []
-    for bg_file in paged_backgrounds:
-        bg_path = os.path.join(backgrounds_dir, bg_file)
-        bg_url = str(request.base_url).rstrip("/") + f"/{bg_path.replace(os.sep, '/')}"
-        result.append(BackgroundResponse(
-            background_url=bg_url,
-            background_path=bg_path
-        ))
-    
-    return result
-
 def generate_card_service(req: GenerateRequest, request: Request) -> GenerateResponse:
     input = {
         "greeting_text_instructions": req.greeting_text_instructions,
         "aspect_ratio": req.aspect_ratio,
     }
     
-    # Add paths if provided - support both template mode and user upload mode
-    if req.background_path and req.foreground_path:
-        input["background_path"] = req.background_path
+    # Add paths if provided - support both template mode and user upload mode        
+    if req.foreground_path:
         input["foreground_path"] = req.foreground_path
-    
-    if req.merged_image_path:
+    if req.merged_image_path and req.background_path:
         input["merged_image_path"] = req.merged_image_path
-        
+        input["background_path"] = req.background_path
+
     try:
         result = graph.invoke(input)
     except Exception as e:

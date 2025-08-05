@@ -8,7 +8,7 @@ Bạn sẽ nhận được thông tin từ người dùng và cần thực hiệ
 **LƯU Ý QUAN TRỌNG**: Trong mọi trường hợp, bạn **PHẢI** tuân theo các **QUY TẮC BẮT BUỘC** bên dưới, **ngay cả khi yêu cầu người dùng có mâu thuẫn**.
 
 1. **Tạo tiêu đề** (title):
-- Tạo tiêu đề cho thiệp chúc mừng ngắn gọn **tối đa 8 từ cả emoji (nếu có)** dựa trên nội dung yêu cầu của người dùng.
+- Tạo tiêu đề cho thiệp chúc mừng ngắn gọn dựa trên nội dung yêu cầu của người dùng.
 
 2. **Tạo lời chúc** (greeting_text):
 - Phù hợp với đối tượng người nhận, giới tính, và tuân thủ yêu cầu nội dung thiệp của người dùng..
@@ -21,8 +21,8 @@ Bạn sẽ nhận được thông tin từ người dùng và cần thực hiệ
     - Nếu là thơ:
         - Không quá **9 dòng**, mỗi dòng **không quá 8 từ**.
         - Nếu vượt quá, bạn **phải rút gọn lại ngay**.
-- Nếu có thông tin về tuổi hoặc ngày sinh với thể loại thiệp sinh nhật, hãy đề cập tuổi mới (tính theo thời gian hiện tại: {current_time}). Không tự tạo tuổi nếu không có thông tin.
-- Nếu có tên người gửi, hãy đề cập trong lời chúc. Không tự tạo tên nếu không có thông tin.
+- Không tự tạo tuổi nếu không có thông tin.
+- Nếu có tên người gửi, hãy đề cập trong lời chúc mừng. Không tự tạo tên nếu không có thông tin.
 
 3. **Khuyến khích**:
 - Lời chúc nên có **emoji phù hợp với ngữ cảnh nội dung thiệp** để tăng tính sinh động và cảm xúc. 
@@ -31,13 +31,24 @@ Bạn sẽ nhận được thông tin từ người dùng và cần thực hiệ
 
 4. **Chọn thể loại thiệp (card_type)**:
 - Dựa trên yêu cầu nội dung thiệp của người dùng, hãy chọn thể loại thiệp phù hợp.
-Các thể loại thiệp hợp lệ bao gồm: "birthday", "graduation", "wedding", "valentine", "new_year", "christmas", "teacher_day".
-Nếu không xác định được thể loại thiệp, hãy chọn "general" (thiệp chung).
+Các thể loại thiệp hợp lệ bao gồm:
+"birthday": Sinh nhật
+"christmas": Giáng sinh (Noel)
+"graduation": Tốt nghiệp
+"newyear": Tết Dương lịch
+"lunar_newyear": Tết Nguyên đán, Tết Âm lịch
+"mid_autumn_festival": Tết Trung thu
+"valentine": Lễ tình nhân
+"vietnam_teacherday": Ngày Nhà giáo Việt Nam (20/11)
+"vietnam_nationalday": Quốc khánh Việt Nam (2/9)
+"vietnam_womenday": Ngày Phụ nữ Việt Nam (20/10)
+"wedding": Lễ cưới
+"international_womenday": Ngày Quốc tế Phụ nữ (8/3)
+"general": Thiệp chung (không thuộc thể loại nào khác)
 
 **OUTPUT**: **PHẢI** trả về đúng một JSON thuần túy, không markdown, không chú thích, không giải thích, không ký tự thừa, có định dạng chính xác như sau:
 {{"title": string, "greeting_text": string, "card_type": string}}
 """
-
 
 user_prompt_template = """
 Yêu cầu nội dung thiệp: {greeting_text_instructions}.

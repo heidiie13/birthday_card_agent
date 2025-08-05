@@ -31,15 +31,6 @@ def fetch_random_template(card_type: str = "birthday", aspect_ratio: float = 3/4
         st.error(f"Lỗi khi lấy mẫu ngẫu nhiên: {e}")
         return {}
 
-def fetch_random_background() -> dict:
-    try:
-        resp = requests.get(f"{BACKEND_URL}/random-background")
-        resp.raise_for_status()
-        return resp.json()
-    except Exception as e:
-        st.error(f"Lỗi khi lấy background: {e}")
-        return []
-
 def main():
     st.markdown(
         "<h1 style='text-align: center; color: #3495eb;'> 🌟 Tạo Thiệp Chúc Mừng</h1>", 
@@ -243,39 +234,22 @@ def main():
                                 st.error(f"Lỗi upload: {upload_data['error']}")
                         except Exception as e:
                             st.error(f"Lỗi khi upload: {e}")
+                        st.rerun()
 
                     if "uploaded_foreground" in st.session_state and st.session_state.uploaded_foreground:
                         st.divider()
                         if "uploaded_template" not in st.session_state:
-                            background = fetch_random_background()
                             fg_path = st.session_state.uploaded_foreground.get("foreground_path")
                             fg_url = st.session_state.uploaded_foreground.get("foreground_url")
                             st.session_state.uploaded_template = {
                                 "foreground_path": fg_path,
-                                "background_path": background.get("background_path"),
                                 "foreground_url": fg_url,
-                                "background_url": background.get("background_url"),
                                 "aspect_ratio": selected_aspect_ratio
                             }
                         
                         uploaded_template = st.session_state.uploaded_template
                         if uploaded_template.get('foreground_url'):
                             st.image(uploaded_template['foreground_url'], caption="Ảnh đã upload", width=200)
-                        
-                        if uploaded_template.get('background_url'):
-                            st.image(uploaded_template['background_url'], caption="Nền ngẫu nhiên", width=200)
-                            if st.button("🔄 Đổi nền", key="change_uploaded_bg", use_container_width=True):
-                                new_bg = fetch_random_background()
-                                fg_path = uploaded_template.get("foreground_path")
-                                fg_url = uploaded_template.get("foreground_url")
-                                st.session_state.uploaded_template = {
-                                    "foreground_path": fg_path,
-                                    "background_path": new_bg.get("background_path"),
-                                    "foreground_url": fg_url,
-                                    "background_url": new_bg.get("background_url"),
-                                    "aspect_ratio": selected_aspect_ratio
-                                }
-                                st.rerun()
         
         st.session_state.selected_aspect_ratio = selected_aspect_ratio
         

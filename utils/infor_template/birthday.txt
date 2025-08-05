@@ -1,0 +1,4 @@
+static/images/foregrounds/birthday_1.webp static/images/backgrounds/back_16.jpg
+static/images/foregrounds/birthday_2.webp static/images/backgrounds/back_27.jpg
+static/images/foregrounds/birthday_3.webp static/images/backgrounds/back_23.png
+static/images/foregrounds/birthday_4.png static/images/backgrounds/chucs.png

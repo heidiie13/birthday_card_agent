@@ -3,7 +3,6 @@ import os
 import logging
 import re
 import uuid
-from datetime import datetime
 from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
 from langchain_core.runnables import Runnable
@@ -13,7 +12,8 @@ from .tools import (merge_foreground_background,
                     add_text_to_image, 
                     get_random_font,
                     get_dominant_color,
-                    get_random_template_by_type
+                    get_random_template_by_type,
+                    get_best_matching_background,
                     )
 
 from .prompt import system_prompt, user_prompt_template, system_color_prompt, dominant_color_prompt_template
@@ -32,9 +32,8 @@ def _get_model() -> Runnable:
             temperature=0.7,
             default_headers={"App-Code": "fresher"},
             extra_body={
-                # ...
                 "chat_template_kwargs": {
-                    "enable_thinking": False  # Hoặc False để tắt
+                    "enable_thinking": False
                 }
             }
         )
@@ -63,15 +62,23 @@ def dominant_color_node(state: State) -> State:
     logger.info(f"Dominant color: {color}")
     return state
 
+def upload_image_node(state: State) -> State:
+    foreground_color = get_dominant_color(state.foreground_path)
+    best_background = get_best_matching_background(foreground_color)
+    state.background_path = best_background.get("background_path")
+    state.dominant_color = best_background.get("color")
+
+    logger.info(f"Foreground color: {foreground_color}")
+    logger.info(f"Selected background path: {state.background_path}")
+    return state
+
 def llm_node(state: State) -> State:
-    now = datetime.now().strftime("%d/%m/%Y")
     llm = _get_model()
     user_prompt = user_prompt_template.format(**state.model_dump())
-    sys_prompt = system_prompt.format(current_time = now)
 
     try:
         messages = [
-            SystemMessage(content=sys_prompt),
+            SystemMessage(content=system_prompt),
             HumanMessage(content=user_prompt)
         ]
 
@@ -89,16 +96,8 @@ def llm_node(state: State) -> State:
     except Exception as e:
         logger.error(f"Error creating messages: {e}")
         return state
-
     
     return state
-
-def route_random_template(state: State) -> State:
-    """Route to a random template based on card type."""
-    if state.foreground_path and state.background_path:
-        return "dominant_color"
-    
-    return "random_template"
 
 def random_template_node(state: State) -> State:
     """Select a random template for the card."""
@@ -234,3 +233,12 @@ def add_text_node(state: State) -> State:
 
     state.font_path = font_path
     return state
+
+def route_random_template(state: State) -> State:
+    """Route to a random template based on card type."""
+    if state.foreground_path and state.background_path:
+        return "dominant_color"
+    
+    if state.foreground_path and not state.background_path:
+        return "upload_image"
+    return "random_template"

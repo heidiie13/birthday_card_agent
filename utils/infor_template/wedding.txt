@@ -1,0 +1,4 @@
+static/images/foregrounds/wedding_1.png static/images/backgrounds/back_16.jpg
+static/images/foregrounds/wedding_2.png static/images/backgrounds/back_31.jpeg
+static/images/foregrounds/wedding_3.png static/images/backgrounds/back_8.jpg
+static/images/foregrounds/wedding_4.png static/images/backgrounds/back_27.jpg

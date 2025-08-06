@@ -3,13 +3,15 @@ import os
 from pathlib import Path
 import shutil
 from typing import List
-
+import logging
 from fastapi import HTTPException, Request, UploadFile
 from api.models import ImageUploadResponse, TemplateResponse, GenerateRequest, GenerateResponse, BackgroundUploadResponse, TemplateUploadResponse, CardType
 
 from core_ai.utils.tools import get_templates_by_type, get_random_template_by_type, get_dominant_color
 from core_ai.graph import build_card_gen_graph
 from utils.metadata import add_background_metadata, add_template_metadata
+
+logger = logging.getLogger(__name__)
 
 STATIC_DIR = "static"
 CARDS_DIR = os.path.join(STATIC_DIR, "images", "cards")
@@ -45,14 +47,29 @@ def get_random_template_service(card_type: str, aspect_ratio: float, request: Re
         raise HTTPException(status_code=404, detail="No template found")
     return TemplateResponse(**template)
 
-def generate_card_service(req: GenerateRequest, request: Request) -> GenerateResponse:
+def generate_card_service(req: GenerateRequest, request: Request, foreground_file: UploadFile = None) -> GenerateResponse:
     input = {
         "greeting_text_instructions": req.greeting_text_instructions,
         "aspect_ratio": req.aspect_ratio,
     }
     
-    if req.foreground_path:
+    # Handle foreground file upload if provided
+    if foreground_file:
+        allowed_ext = (".png", ".jpg", ".jpeg", ".webp")
+        if not foreground_file.filename.lower().endswith(allowed_ext):
+            raise HTTPException(status_code=400, detail="Only image files are allowed (png, jpg, jpeg, webp)")
+
+        upload_dir = os.path.join("static", "images", "foregrounds", "uploads")
+        os.makedirs(upload_dir, exist_ok=True)
+        
+        file_path = os.path.join(upload_dir, foreground_file.filename)
+        with open(file_path, "wb") as buffer:
+            shutil.copyfileobj(foreground_file.file, buffer)
+        
+        input["foreground_path"] = file_path
+    elif req.foreground_path:
         input["foreground_path"] = req.foreground_path
+    
     if req.merged_image_path and req.background_path:
         input["merged_image_path"] = req.merged_image_path
         input["background_path"] = req.background_path
@@ -113,7 +130,7 @@ def upload_background_service(file: UploadFile, request: Request) -> BackgroundU
             color = get_dominant_color(file_path)
     except Exception as e:
         color = "#000000"
-        print(f"Warning: Failed to add background metadata: {e}")
+        logger.error(f"Failed to add background metadata: {e}")
 
     file_url = str(request.base_url).rstrip("/") + f"/{file_path.replace(os.sep, '/')}"
     return BackgroundUploadResponse(
@@ -151,6 +168,12 @@ def upload_template_service(
     if not os.path.exists(bg_file_path):
         with open(bg_file_path, "wb") as buffer:
             shutil.copyfileobj(background_file.file, buffer)
+        
+        bg_json_path = "static/images/background_metadata.json"
+        try:
+            add_background_metadata(bg_file_path, bg_json_path)
+        except Exception as e:
+            logger.error(f"Warning: Failed to add background metadata: {e}")
 
     json_path = "static/images/template_metadata.json"
     try:

@@ -1,0 +1,3 @@
+static/images/foregrounds/vietnam_womenday_1.png static/images/backgrounds/chucs.png
+static/images/foregrounds/vietnam_womenday_2.png static/images/backgrounds/back_15.jpg
+static/images/foregrounds/vietnam_womenday_3.png static/images/backgrounds/back_31.png

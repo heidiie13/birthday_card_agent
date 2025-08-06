@@ -1,0 +1,902 @@
+[
+  {
+    "foreground_path": "static/images/foregrounds/birthday_1.webp",
+    "background_path": "static/images/backgrounds/back_16.jpg",
+    "merged_image_path": "static/images/card_types/birthday/8f3cdd19-394f-4020-8f6e-3cd6a9ee9438.png",
+    "aspect_ratio": 0.75,
+    "merge_position": "top",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "birthday"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/birthday_2.webp",
+    "background_path": "static/images/backgrounds/back_27.jpg",
+    "merged_image_path": "static/images/card_types/birthday/4348e694-1d7a-4e1a-9487-ec1e02eb2e33.png",
+    "aspect_ratio": 0.75,
+    "merge_position": "top",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "birthday"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/birthday_3.webp",
+    "background_path": "static/images/backgrounds/back_23.png",
+    "merged_image_path": "static/images/card_types/birthday/6db7ec52-da44-4eed-98da-7f366be230c4.png",
+    "aspect_ratio": 0.75,
+    "merge_position": "top",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "birthday"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/birthday_4.png",
+    "background_path": "static/images/backgrounds/chucs.png",
+    "merged_image_path": "static/images/card_types/birthday/5ca86062-b3df-4a23-8a92-834b2e6543d8.png",
+    "aspect_ratio": 0.75,
+    "merge_position": "top",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "birthday"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/christmas_1.png",
+    "background_path": "static/images/backgrounds/back_8.jpg",
+    "merged_image_path": "static/images/card_types/christmas/aa659c67-2899-4c5d-b935-11bf79014a5f.png",
+    "aspect_ratio": 0.75,
+    "merge_position": "top",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "christmas"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/christmas_2.png",
+    "background_path": "static/images/backgrounds/back_12.webp",
+    "merged_image_path": "static/images/card_types/christmas/975119b5-50aa-4cf5-aec8-14b5d419b031.png",
+    "aspect_ratio": 0.75,
+    "merge_position": "top",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "christmas"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/christmas_3.png",
+    "background_path": "static/images/backgrounds/back_13.jpeg",
+    "merged_image_path": "static/images/card_types/christmas/93885cc1-f81d-40ce-8d51-98014c157e3d.png",
+    "aspect_ratio": 0.75,
+    "merge_position": "top",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "christmas"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/christmas_4.png",
+    "background_path": "static/images/backgrounds/back_30.png",
+    "merged_image_path": "static/images/card_types/christmas/01012143-d323-410d-a0de-257a6217ddd7.png",
+    "aspect_ratio": 0.75,
+    "merge_position": "top",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "christmas"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/general_1.png",
+    "background_path": "static/images/backgrounds/back_8.jpg",
+    "merged_image_path": "static/images/card_types/general/7d5582f5-6095-46be-af97-f5035c0d3d4e.png",
+    "aspect_ratio": 0.75,
+    "merge_position": "top",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "general"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/general_2.png",
+    "background_path": "static/images/backgrounds/back_22.webp",
+    "merged_image_path": "static/images/card_types/general/8e8fb698-119e-428a-bf02-9314e3a5ffaf.png",
+    "aspect_ratio": 0.75,
+    "merge_position": "top",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "general"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/general_3.png",
+    "background_path": "static/images/backgrounds/back_21.jpg",
+    "merged_image_path": "static/images/card_types/general/a0b71c44-5368-4bc3-8208-fbd5ae5ffc0a.png",
+    "aspect_ratio": 0.75,
+    "merge_position": "top",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "general"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/general_4.png",
+    "background_path": "static/images/backgrounds/back_27.jpg",
+    "merged_image_path": "static/images/card_types/general/82736997-cc8b-4f8d-afbe-d7ce81a16c3e.png",
+    "aspect_ratio": 0.75,
+    "merge_position": "top",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "general"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/graduation_1.png",
+    "background_path": "static/images/backgrounds/back_17.jpeg",
+    "merged_image_path": "static/images/card_types/graduation/89b8c93b-f889-4fc2-ba3d-6b6b3bbc102b.png",
+    "aspect_ratio": 0.75,
+    "merge_position": "top",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "graduation"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/graduation_2.png",
+    "background_path": "static/images/backgrounds/back_31.jpeg",
+    "merged_image_path": "static/images/card_types/graduation/3cb64d1e-8621-427d-a344-6cf94b300380.png",
+    "aspect_ratio": 0.75,
+    "merge_position": "top",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "graduation"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/graduation_3.png",
+    "background_path": "static/images/backgrounds/back_25.webp",
+    "merged_image_path": "static/images/card_types/graduation/491fa4d9-681f-45e3-af67-638d147a25ad.png",
+    "aspect_ratio": 0.75,
+    "merge_position": "top",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "graduation"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/womenday_1.png",
+    "background_path": "static/images/backgrounds/back_6.jpeg",
+    "merged_image_path": "static/images/card_types/international_womenday/3dae272b-4f7b-4137-aa3d-69b51d64bc8c.png",
+    "aspect_ratio": 0.75,
+    "merge_position": "top",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "international_womenday"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/womenday_2.png",
+    "background_path": "static/images/backgrounds/back_31.jpeg",
+    "merged_image_path": "static/images/card_types/international_womenday/406e9004-15b7-4c0a-bc60-ae534da97a7d.png",
+    "aspect_ratio": 0.75,
+    "merge_position": "top",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "international_womenday"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/womenday_3.png",
+    "background_path": "static/images/backgrounds/back_16.jpg",
+    "merged_image_path": "static/images/card_types/international_womenday/e0733311-cd9c-45e4-a13a-12388b1200e3.png",
+    "aspect_ratio": 0.75,
+    "merge_position": "top",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "international_womenday"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/lunar_newyear_1.png",
+    "background_path": "static/images/backgrounds/back_34.png",
+    "merged_image_path": "static/images/card_types/lunar_newyear/ae98422b-cd95-4f49-ac6b-1d38d3ace639.png",
+    "aspect_ratio": 0.75,
+    "merge_position": "top",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "lunar_newyear"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/lunar_newyear_2.png",
+    "background_path": "static/images/backgrounds/back_34.png",
+    "merged_image_path": "static/images/card_types/lunar_newyear/ec8a8d13-44a1-4bc3-bdf5-7a94c4823213.png",
+    "aspect_ratio": 0.75,
+    "merge_position": "top",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "lunar_newyear"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/lunar_newyear_3.png",
+    "background_path": "static/images/backgrounds/back_34.png",
+    "merged_image_path": "static/images/card_types/lunar_newyear/eceb65a9-88d2-4360-ae67-f2b1bc9c8a6f.png",
+    "aspect_ratio": 0.75,
+    "merge_position": "top",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "lunar_newyear"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/mid_autumn_fes_1.png",
+    "background_path": "static/images/backgrounds/back_35.png",
+    "merged_image_path": "static/images/card_types/mid_autumn_festival/75145086-5e92-4fa1-8901-aedbd3188f00.png",
+    "aspect_ratio": 0.75,
+    "merge_position": "top",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "mid_autumn_festival"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/mid_autumn_fes_2.png",
+    "background_path": "static/images/backgrounds/back_36.png",
+    "merged_image_path": "static/images/card_types/mid_autumn_festival/3cdbd97e-dde4-4b2f-b015-b80e6f8325a5.png",
+    "aspect_ratio": 0.75,
+    "merge_position": "top",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "mid_autumn_festival"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/mid_autumn_fes_3.png",
+    "background_path": "static/images/backgrounds/back_36.png",
+    "merged_image_path": "static/images/card_types/mid_autumn_festival/0ab67f38-80ff-4f5c-8ac0-25c794867bd5.png",
+    "aspect_ratio": 0.75,
+    "merge_position": "top",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "mid_autumn_festival"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/newyear_1.png",
+    "background_path": "static/images/backgrounds/back_10.webp",
+    "merged_image_path": "static/images/card_types/newyear/4c2ddb3a-b78f-46a3-b49b-6727250fc6f3.png",
+    "aspect_ratio": 0.75,
+    "merge_position": "top",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "newyear"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/newyear_2.png",
+    "background_path": "static/images/backgrounds/back_27.jpg",
+    "merged_image_path": "static/images/card_types/newyear/9c36cc47-89e8-4fca-948b-f0a5043c31b0.png",
+    "aspect_ratio": 0.75,
+    "merge_position": "top",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "newyear"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/newyear_3.png",
+    "background_path": "static/images/backgrounds/back_23.png",
+    "merged_image_path": "static/images/card_types/newyear/dff63d81-dd53-4a15-8673-8a9c7d7158f1.png",
+    "aspect_ratio": 0.75,
+    "merge_position": "top",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "newyear"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/valentine_1.png",
+    "background_path": "static/images/backgrounds/back_6.jpeg",
+    "merged_image_path": "static/images/card_types/valentine/61ce5ff4-98ff-4f72-bc5b-9cb4b0879fcc.png",
+    "aspect_ratio": 0.75,
+    "merge_position": "top",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "valentine"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/valentine_2.png",
+    "background_path": "static/images/backgrounds/back_8.jpg",
+    "merged_image_path": "static/images/card_types/valentine/85afd808-4914-456d-bc82-df19c0011a83.png",
+    "aspect_ratio": 0.75,
+    "merge_position": "top",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "valentine"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/valentine_3.png",
+    "background_path": "static/images/backgrounds/back_16.jpg",
+    "merged_image_path": "static/images/card_types/valentine/d78dc61c-05c0-4157-a0cc-c8afacb15f3e.png",
+    "aspect_ratio": 0.75,
+    "merge_position": "top",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "valentine"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/valentine_4.png",
+    "background_path": "static/images/backgrounds/back_22.webp",
+    "merged_image_path": "static/images/card_types/valentine/88bd775f-d0a5-4b35-bcae-8f6299d85f34.png",
+    "aspect_ratio": 0.75,
+    "merge_position": "top",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "valentine"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/2_9_1.png",
+    "background_path": "static/images/backgrounds/back_32.png",
+    "merged_image_path": "static/images/card_types/vietnam_nationalday/f8a93604-82db-4bbe-87a8-02d406037422.png",
+    "aspect_ratio": 0.75,
+    "merge_position": "top",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "vietnam_nationalday"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/2_9_2.png",
+    "background_path": "static/images/backgrounds/back_33.png",
+    "merged_image_path": "static/images/card_types/vietnam_nationalday/24e409f7-618b-44a1-b058-a8d2ee9ac5b4.png",
+    "aspect_ratio": 0.75,
+    "merge_position": "top",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "vietnam_nationalday"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/2_9_3.png",
+    "background_path": "static/images/backgrounds/back_32.png",
+    "merged_image_path": "static/images/card_types/vietnam_nationalday/6af22fef-270b-49e4-94bf-edb3f2d07e3e.png",
+    "aspect_ratio": 0.75,
+    "merge_position": "top",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "vietnam_nationalday"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/vietnam_teacherday_1.png",
+    "background_path": "static/images/backgrounds/chucs2.png",
+    "merged_image_path": "static/images/card_types/vietnam_teacherday/472a1686-0f0c-4ba1-89a5-6c1dbb6ef03d.png",
+    "aspect_ratio": 0.75,
+    "merge_position": "top",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "vietnam_teacherday"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/vietnam_teacherday_2.png",
+    "background_path": "static/images/backgrounds/back_10.webp",
+    "merged_image_path": "static/images/card_types/vietnam_teacherday/f8b708e2-0bfb-4729-a684-a02e2b009b77.png",
+    "aspect_ratio": 0.75,
+    "merge_position": "top",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "vietnam_teacherday"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/vietnam_teacherday_3.png",
+    "background_path": "static/images/backgrounds/back_10.webp",
+    "merged_image_path": "static/images/card_types/vietnam_teacherday/5fc17df1-17e9-45a7-af59-b834599e2046.png",
+    "aspect_ratio": 0.75,
+    "merge_position": "top",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "vietnam_teacherday"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/vietnam_teacherday_4.png",
+    "background_path": "static/images/backgrounds/back_31.png",
+    "merged_image_path": "static/images/card_types/vietnam_teacherday/c8a5c214-8284-4076-b118-f29f36672694.png",
+    "aspect_ratio": 0.75,
+    "merge_position": "top",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "vietnam_teacherday"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/vietnam_womenday_1.png",
+    "background_path": "static/images/backgrounds/chucs.png",
+    "merged_image_path": "static/images/card_types/vietnam_womenday/b2265a15-d5d7-446c-9258-b61bd4ec960d.png",
+    "aspect_ratio": 0.75,
+    "merge_position": "top",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "vietnam_womenday"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/vietnam_womenday_2.png",
+    "background_path": "static/images/backgrounds/back_15.jpg",
+    "merged_image_path": "static/images/card_types/vietnam_womenday/0895a6d0-f10a-4cc6-a4d9-bce1bb558998.png",
+    "aspect_ratio": 0.75,
+    "merge_position": "top",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "vietnam_womenday"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/vietnam_womenday_3.png",
+    "background_path": "static/images/backgrounds/back_31.png",
+    "merged_image_path": "static/images/card_types/vietnam_womenday/183c83fd-aac3-4046-9856-ad9b9636d29b.png",
+    "aspect_ratio": 0.75,
+    "merge_position": "top",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "vietnam_womenday"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/wedding_1.png",
+    "background_path": "static/images/backgrounds/back_16.jpg",
+    "merged_image_path": "static/images/card_types/wedding/56768ac8-cf6c-42d7-8ab1-5ef26f122bc7.png",
+    "aspect_ratio": 0.75,
+    "merge_position": "top",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "wedding"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/wedding_2.png",
+    "background_path": "static/images/backgrounds/back_31.jpeg",
+    "merged_image_path": "static/images/card_types/wedding/bac5f3ba-ec1f-47aa-9b78-103985e84bbc.png",
+    "aspect_ratio": 0.75,
+    "merge_position": "top",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "wedding"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/wedding_3.png",
+    "background_path": "static/images/backgrounds/back_8.jpg",
+    "merged_image_path": "static/images/card_types/wedding/0561b0aa-79d4-4d2e-9d04-9537b061483d.png",
+    "aspect_ratio": 0.75,
+    "merge_position": "top",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "wedding"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/wedding_4.png",
+    "background_path": "static/images/backgrounds/back_27.jpg",
+    "merged_image_path": "static/images/card_types/wedding/7ebc83cc-53c1-44d3-b46d-cac66a6164f7.png",
+    "aspect_ratio": 0.75,
+    "merge_position": "top",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "wedding"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/birthday_1.webp",
+    "background_path": "static/images/backgrounds/back_16.jpg",
+    "merged_image_path": "static/images/card_types/birthday/dec5ed86-17ca-435f-bb5b-7080547f9edf.png",
+    "aspect_ratio": 1.3333333333333333,
+    "merge_position": "right",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "birthday"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/birthday_2.webp",
+    "background_path": "static/images/backgrounds/back_27.jpg",
+    "merged_image_path": "static/images/card_types/birthday/2c3f6958-368e-4be0-a30c-da266e560b52.png",
+    "aspect_ratio": 1.3333333333333333,
+    "merge_position": "right",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "birthday"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/birthday_3.webp",
+    "background_path": "static/images/backgrounds/back_23.png",
+    "merged_image_path": "static/images/card_types/birthday/85560f49-7de8-4dfc-ba11-4d1369d99729.png",
+    "aspect_ratio": 1.3333333333333333,
+    "merge_position": "right",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "birthday"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/birthday_4.png",
+    "background_path": "static/images/backgrounds/chucs.png",
+    "merged_image_path": "static/images/card_types/birthday/5cfe0da0-7109-4188-84bb-cf9bd1770c4a.png",
+    "aspect_ratio": 1.3333333333333333,
+    "merge_position": "right",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "birthday"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/christmas_1.png",
+    "background_path": "static/images/backgrounds/back_8.jpg",
+    "merged_image_path": "static/images/card_types/christmas/356a273b-0225-4e6e-b534-29136de2fa03.png",
+    "aspect_ratio": 1.3333333333333333,
+    "merge_position": "right",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "christmas"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/christmas_2.png",
+    "background_path": "static/images/backgrounds/back_12.webp",
+    "merged_image_path": "static/images/card_types/christmas/f701a08e-0a0c-4c1e-a4c0-e382ee440872.png",
+    "aspect_ratio": 1.3333333333333333,
+    "merge_position": "right",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "christmas"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/christmas_3.png",
+    "background_path": "static/images/backgrounds/back_13.jpeg",
+    "merged_image_path": "static/images/card_types/christmas/f5e22af7-6dd6-486d-830e-502908118248.png",
+    "aspect_ratio": 1.3333333333333333,
+    "merge_position": "right",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "christmas"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/christmas_4.png",
+    "background_path": "static/images/backgrounds/back_30.png",
+    "merged_image_path": "static/images/card_types/christmas/b28ba9d2-695f-44e8-ab9f-229435ebb813.png",
+    "aspect_ratio": 1.3333333333333333,
+    "merge_position": "right",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "christmas"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/general_1.png",
+    "background_path": "static/images/backgrounds/back_8.jpg",
+    "merged_image_path": "static/images/card_types/general/3fac2ef6-20f0-42dd-ae08-d4645dea068a.png",
+    "aspect_ratio": 1.3333333333333333,
+    "merge_position": "right",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "general"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/general_2.png",
+    "background_path": "static/images/backgrounds/back_22.webp",
+    "merged_image_path": "static/images/card_types/general/fee1ead9-fea9-46b7-ba0a-677d3df3b038.png",
+    "aspect_ratio": 1.3333333333333333,
+    "merge_position": "right",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "general"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/general_3.png",
+    "background_path": "static/images/backgrounds/back_21.jpg",
+    "merged_image_path": "static/images/card_types/general/61015da8-8a9c-4d16-a944-ba61ed5ed8b5.png",
+    "aspect_ratio": 1.3333333333333333,
+    "merge_position": "right",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "general"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/general_4.png",
+    "background_path": "static/images/backgrounds/back_27.jpg",
+    "merged_image_path": "static/images/card_types/general/d6b60816-8393-4b9d-964b-aa31bb418b88.png",
+    "aspect_ratio": 1.3333333333333333,
+    "merge_position": "right",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "general"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/graduation_1.png",
+    "background_path": "static/images/backgrounds/back_17.jpeg",
+    "merged_image_path": "static/images/card_types/graduation/f94b2eb1-7043-48d5-a44b-6a358df5e305.png",
+    "aspect_ratio": 1.3333333333333333,
+    "merge_position": "right",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "graduation"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/graduation_2.png",
+    "background_path": "static/images/backgrounds/back_31.jpeg",
+    "merged_image_path": "static/images/card_types/graduation/c383f8d5-494d-4b14-9c7c-fa3b214a46e5.png",
+    "aspect_ratio": 1.3333333333333333,
+    "merge_position": "right",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "graduation"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/graduation_3.png",
+    "background_path": "static/images/backgrounds/back_25.webp",
+    "merged_image_path": "static/images/card_types/graduation/3dff0c38-e04a-441b-a1f6-3cd4ad3613a4.png",
+    "aspect_ratio": 1.3333333333333333,
+    "merge_position": "right",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "graduation"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/womenday_1.png",
+    "background_path": "static/images/backgrounds/back_6.jpeg",
+    "merged_image_path": "static/images/card_types/international_womenday/c8b02492-db2b-414b-80b3-a0b75becd051.png",
+    "aspect_ratio": 1.3333333333333333,
+    "merge_position": "right",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "international_womenday"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/womenday_2.png",
+    "background_path": "static/images/backgrounds/back_31.jpeg",
+    "merged_image_path": "static/images/card_types/international_womenday/2e3817b8-75f8-49e1-9191-6ea1f2eb59d3.png",
+    "aspect_ratio": 1.3333333333333333,
+    "merge_position": "right",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "international_womenday"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/womenday_3.png",
+    "background_path": "static/images/backgrounds/back_16.jpg",
+    "merged_image_path": "static/images/card_types/international_womenday/746d1d25-97ec-41d3-aa41-9335a196e67a.png",
+    "aspect_ratio": 1.3333333333333333,
+    "merge_position": "right",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "international_womenday"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/lunar_newyear_1.png",
+    "background_path": "static/images/backgrounds/back_34.png",
+    "merged_image_path": "static/images/card_types/lunar_newyear/452d224b-d45f-4863-ae03-07cb6de2530b.png",
+    "aspect_ratio": 1.3333333333333333,
+    "merge_position": "right",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "lunar_newyear"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/lunar_newyear_2.png",
+    "background_path": "static/images/backgrounds/back_34.png",
+    "merged_image_path": "static/images/card_types/lunar_newyear/d9aa740e-4ac3-41a5-abbe-e7fadc0ff5f6.png",
+    "aspect_ratio": 1.3333333333333333,
+    "merge_position": "right",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "lunar_newyear"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/lunar_newyear_3.png",
+    "background_path": "static/images/backgrounds/back_34.png",
+    "merged_image_path": "static/images/card_types/lunar_newyear/1faac0ad-5d95-4733-85ce-39d717cd898f.png",
+    "aspect_ratio": 1.3333333333333333,
+    "merge_position": "right",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "lunar_newyear"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/mid_autumn_fes_1.png",
+    "background_path": "static/images/backgrounds/back_35.png",
+    "merged_image_path": "static/images/card_types/mid_autumn_festival/411cc26b-7699-41e6-9e65-5bb1b10c5da0.png",
+    "aspect_ratio": 1.3333333333333333,
+    "merge_position": "right",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "mid_autumn_festival"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/mid_autumn_fes_2.png",
+    "background_path": "static/images/backgrounds/back_36.png",
+    "merged_image_path": "static/images/card_types/mid_autumn_festival/4570e672-f4df-4d8c-9820-0c16eba4630d.png",
+    "aspect_ratio": 1.3333333333333333,
+    "merge_position": "right",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "mid_autumn_festival"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/mid_autumn_fes_3.png",
+    "background_path": "static/images/backgrounds/back_36.png",
+    "merged_image_path": "static/images/card_types/mid_autumn_festival/d63b03e7-7715-4040-b059-fd6570575e0c.png",
+    "aspect_ratio": 1.3333333333333333,
+    "merge_position": "right",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "mid_autumn_festival"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/newyear_1.png",
+    "background_path": "static/images/backgrounds/back_10.webp",
+    "merged_image_path": "static/images/card_types/newyear/2fca86c7-e2c5-424e-b238-c765d0df6e54.png",
+    "aspect_ratio": 1.3333333333333333,
+    "merge_position": "right",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "newyear"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/newyear_2.png",
+    "background_path": "static/images/backgrounds/back_27.jpg",
+    "merged_image_path": "static/images/card_types/newyear/725d3e6f-7781-4839-9ac2-06fdf2949192.png",
+    "aspect_ratio": 1.3333333333333333,
+    "merge_position": "right",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "newyear"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/newyear_3.png",
+    "background_path": "static/images/backgrounds/back_23.png",
+    "merged_image_path": "static/images/card_types/newyear/da30bc04-7559-40b2-a57b-d027c8b9ead6.png",
+    "aspect_ratio": 1.3333333333333333,
+    "merge_position": "right",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "newyear"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/valentine_1.png",
+    "background_path": "static/images/backgrounds/back_6.jpeg",
+    "merged_image_path": "static/images/card_types/valentine/49f5515a-2259-4425-9ac7-b0e67f0d7b69.png",
+    "aspect_ratio": 1.3333333333333333,
+    "merge_position": "right",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "valentine"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/valentine_2.png",
+    "background_path": "static/images/backgrounds/back_8.jpg",
+    "merged_image_path": "static/images/card_types/valentine/f2a84649-aaf8-4d55-b564-81877f1f182e.png",
+    "aspect_ratio": 1.3333333333333333,
+    "merge_position": "right",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "valentine"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/valentine_3.png",
+    "background_path": "static/images/backgrounds/back_16.jpg",
+    "merged_image_path": "static/images/card_types/valentine/88dab6c6-223b-4066-83e7-81621a043b5c.png",
+    "aspect_ratio": 1.3333333333333333,
+    "merge_position": "right",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "valentine"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/valentine_4.png",
+    "background_path": "static/images/backgrounds/back_22.webp",
+    "merged_image_path": "static/images/card_types/valentine/18e1d7df-4995-4eb2-bd67-b4b80cd688de.png",
+    "aspect_ratio": 1.3333333333333333,
+    "merge_position": "right",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "valentine"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/2_9_1.png",
+    "background_path": "static/images/backgrounds/back_32.png",
+    "merged_image_path": "static/images/card_types/vietnam_nationalday/aea3ff9d-ef45-4cfd-95dd-f6bd59dc2ea9.png",
+    "aspect_ratio": 1.3333333333333333,
+    "merge_position": "right",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "vietnam_nationalday"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/2_9_2.png",
+    "background_path": "static/images/backgrounds/back_33.png",
+    "merged_image_path": "static/images/card_types/vietnam_nationalday/2bef181f-763e-4e96-9352-8439d90f69f6.png",
+    "aspect_ratio": 1.3333333333333333,
+    "merge_position": "right",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "vietnam_nationalday"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/2_9_3.png",
+    "background_path": "static/images/backgrounds/back_32.png",
+    "merged_image_path": "static/images/card_types/vietnam_nationalday/7dfd9c7d-46f1-49a7-9de3-fa3708ab7cb7.png",
+    "aspect_ratio": 1.3333333333333333,
+    "merge_position": "right",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "vietnam_nationalday"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/vietnam_teacherday_1.png",
+    "background_path": "static/images/backgrounds/chucs2.png",
+    "merged_image_path": "static/images/card_types/vietnam_teacherday/9acf42d4-9e97-4a9b-9078-4078f443e06b.png",
+    "aspect_ratio": 1.3333333333333333,
+    "merge_position": "right",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "vietnam_teacherday"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/vietnam_teacherday_2.png",
+    "background_path": "static/images/backgrounds/back_10.webp",
+    "merged_image_path": "static/images/card_types/vietnam_teacherday/3b06e112-c453-4d54-a7cb-a4ac43efed2a.png",
+    "aspect_ratio": 1.3333333333333333,
+    "merge_position": "right",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "vietnam_teacherday"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/vietnam_teacherday_3.png",
+    "background_path": "static/images/backgrounds/back_10.webp",
+    "merged_image_path": "static/images/card_types/vietnam_teacherday/549fb00d-96c5-4f89-9c17-b9a1bbca41d5.png",
+    "aspect_ratio": 1.3333333333333333,
+    "merge_position": "right",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "vietnam_teacherday"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/vietnam_teacherday_4.png",
+    "background_path": "static/images/backgrounds/back_31.png",
+    "merged_image_path": "static/images/card_types/vietnam_teacherday/fe0fdf16-95c7-4ad2-8e76-96ccbebec6af.png",
+    "aspect_ratio": 1.3333333333333333,
+    "merge_position": "right",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "vietnam_teacherday"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/vietnam_womenday_1.png",
+    "background_path": "static/images/backgrounds/chucs.png",
+    "merged_image_path": "static/images/card_types/vietnam_womenday/b44fb154-f14b-4508-8252-26bc78e8c211.png",
+    "aspect_ratio": 1.3333333333333333,
+    "merge_position": "right",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "vietnam_womenday"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/vietnam_womenday_2.png",
+    "background_path": "static/images/backgrounds/back_15.jpg",
+    "merged_image_path": "static/images/card_types/vietnam_womenday/53f7c79c-da98-45de-9ac7-32059c88100a.png",
+    "aspect_ratio": 1.3333333333333333,
+    "merge_position": "right",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "vietnam_womenday"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/vietnam_womenday_3.png",
+    "background_path": "static/images/backgrounds/back_31.png",
+    "merged_image_path": "static/images/card_types/vietnam_womenday/6e8d229a-2b14-48b0-aa04-b5d3323b2d22.png",
+    "aspect_ratio": 1.3333333333333333,
+    "merge_position": "right",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "vietnam_womenday"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/wedding_1.png",
+    "background_path": "static/images/backgrounds/back_16.jpg",
+    "merged_image_path": "static/images/card_types/wedding/e425ea51-e605-4f30-9967-3cb1cfd1d47e.png",
+    "aspect_ratio": 1.3333333333333333,
+    "merge_position": "right",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "wedding"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/wedding_2.png",
+    "background_path": "static/images/backgrounds/back_31.jpeg",
+    "merged_image_path": "static/images/card_types/wedding/2ef56013-12f6-48cc-b283-64379b09124c.png",
+    "aspect_ratio": 1.3333333333333333,
+    "merge_position": "right",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "wedding"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/wedding_3.png",
+    "background_path": "static/images/backgrounds/back_8.jpg",
+    "merged_image_path": "static/images/card_types/wedding/c5e96c77-5a8b-4c15-bdd7-8519ce569e85.png",
+    "aspect_ratio": 1.3333333333333333,
+    "merge_position": "right",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "wedding"
+  },
+  {
+    "foreground_path": "static/images/foregrounds/wedding_4.png",
+    "background_path": "static/images/backgrounds/back_27.jpg",
+    "merged_image_path": "static/images/card_types/wedding/e6fd4d0e-847f-4505-baa5-4ec0597f7cef.png",
+    "aspect_ratio": 1.3333333333333333,
+    "merge_position": "right",
+    "merge_margin_ratio": 0.05,
+    "merge_foreground_ratio": 0.5,
+    "card_type": "wedding"
+  }
+]

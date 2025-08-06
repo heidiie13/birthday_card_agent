@@ -1,0 +1,3 @@
+static/images/foregrounds/2_9_1.png static/images/backgrounds/back_32.png 
+static/images/foregrounds/2_9_2.png static/images/backgrounds/back_33.png
+static/images/foregrounds/2_9_3.png static/images/backgrounds/back_32.png

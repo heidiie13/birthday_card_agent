@@ -1,0 +1,4 @@
+static/images/foregrounds/vietnam_teacherday_1.png static/images/backgrounds/chucs2.png
+static/images/foregrounds/vietnam_teacherday_2.png static/images/backgrounds/back_10.webp
+static/images/foregrounds/vietnam_teacherday_3.png static/images/backgrounds/back_10.webp
+static/images/foregrounds/vietnam_teacherday_4.png static/images/backgrounds/back_31.png

@@ -1,0 +1,3 @@
+static/images/foregrounds/mid_autumn_fes_1.png static/images/backgrounds/back_35.png
+static/images/foregrounds/mid_autumn_fes_2.png static/images/backgrounds/back_36.png
+static/images/foregrounds/mid_autumn_fes_3.png static/images/backgrounds/back_36.png

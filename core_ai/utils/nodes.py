@@ -239,10 +239,9 @@ def add_text_node(state: State) -> State:
     return state
 
 def route_random_template(state: State) -> State:
-    """Route to a random template based on card type."""
-    if state.foreground_path and state.background_path:
+    """Route to appropriate processing based on the provided inputs."""
+    if state.merged_image_path and state.background_path and state.foreground_path:
         return "dominant_color"
-    
-    if state.foreground_path and not state.background_path:
+    if state.foreground_path and not state.background_path and not state.merged_image_path:
         return "upload_image"
     return "random_template"

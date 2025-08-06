@@ -2,13 +2,13 @@ import os, sys
 from typing import List
 sys.path.append(os.path.dirname(__file__))
 
-from fastapi import UploadFile, File
+from fastapi import UploadFile, File, Form
 from fastapi import FastAPI, Request, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
-from api.models import ImageUploadResponse, TemplateResponse, GenerateRequest, GenerateResponse, CardType, AspectRatio, BackgroundUploadResponse, TemplateUploadResponse
-from api.services import get_random_template_service, get_templates_service, generate_card_service, upload_image_service, upload_background_service, upload_template_service
+from api.models import TemplateResponse, GenerateRequest, GenerateResponse, CardType, AspectRatio, BackgroundUploadResponse, TemplateUploadResponse
+from api.services import get_random_template_service, get_templates_service, generate_card_service, generate_card_with_upload_service, upload_background_service, upload_template_service
 
 app = FastAPI(title="Card Generator API")
 
@@ -56,28 +56,39 @@ def get_random_template(card_type: CardType, aspect_ratio: AspectRatio, request:
     "/generate-card",
     response_model=GenerateResponse,
     description="""
-    Generate a birthday card based on the provided request.
+    Generate a birthday card based on the provided request using templates.
 
     - The `greeting_text_instructions` is used to generate a meaningful greeting text (required).
-    - If just `foreground_path` is provided, it will use the provided foreground image with a similar background to merge.
-    - If `merge_image_path`, `background_path` and `foreground_path` are not provided, it will automatically select appropriate templates based on the `greeting_text_instructions`.
+    - If `merge_image_path`, `background_path` and `foreground_path` are all provided, it will use the specific template.
+    - If none of these are provided, it will automatically select appropriate templates based on the `greeting_text_instructions`.
     - The `aspect_ratio` can be 3:4 or 4:3, which determines the layout of the card.
     """,
     tags=["Card Generation"]
 )
 def generate_card(req: GenerateRequest, request: Request):
-    """Generate a birthday card based on the provided request."""
+    """Generate a birthday card based on templates."""
     return generate_card_service(req, request)
 
 @app.post(
-    "/upload-foreground",
-    response_model=ImageUploadResponse,
-    description="Upload a foreground image for the card.",
-    tags=["Image Upload"]
+    "/generate-card-with-upload",
+    response_model=GenerateResponse,
+    description="""
+    Generate a birthday card using an uploaded foreground image.
+
+    - Upload a foreground image file and provide greeting text instructions.
+    - The system will automatically find the best matching background for the uploaded image.
+    - The `aspect_ratio` can be 3:4 or 4:3, which determines the layout of the card.
+    """,
+    tags=["Card Generation"]
 )
-async def upload_foreground(req: Request, file: UploadFile = File(...)):
-    """Upload a foreground image for the card."""
-    return upload_image_service(file, req)
+async def generate_card_with_upload(
+    request: Request,
+    greeting_text_instructions: str = Form(..., description="Instructions for the greeting text"),
+    aspect_ratio: AspectRatio = Form(..., description="Aspect ratio of the card"),
+    file: UploadFile = File(..., description="Foreground image file"),
+):
+    """Generate a birthday card using an uploaded foreground image."""
+    return await generate_card_with_upload_service(greeting_text_instructions, file, aspect_ratio, request)
 
 @app.post(
     "/upload-background",
@@ -97,8 +108,8 @@ async def upload_background(req: Request, file: UploadFile = File(...)):
 )
 async def upload_template(
     req: Request,
-    card_type: CardType,
-    aspect_ratio: AspectRatio,
+    card_type: CardType = Form(..., description="Type of the card"),
+    aspect_ratio: AspectRatio = Form(..., description="Aspect ratio of the card"),
     foreground_file: UploadFile = File(..., description="Foreground image file"),
     background_file: UploadFile = File(..., description="Background image file")
 ):

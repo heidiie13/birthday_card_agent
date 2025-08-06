@@ -67,7 +67,7 @@ def dominant_color_node(state: State) -> State:
     return state
 
 def upload_image_node(state: State) -> State:
-    foreground_color = get_dominant_color(state.foreground_path)
+    foreground_color = get_dominant_color(state.foreground_path, quality=50)
     best_background = get_best_matching_background(foreground_color)
     state.background_path = best_background.get("background_path")
     state.dominant_color = best_background.get("color")

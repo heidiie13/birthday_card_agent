@@ -19,7 +19,7 @@ from .tools import (merge_foreground_background,
                     get_best_matching_background,
                     )
 
-from .prompt import system_prompt, user_prompt_template, system_color_prompt, dominant_color_prompt_template
+from .prompt import system_prompt, user_prompt_template, system_color_prompt, dominant_color_prompt_template, system_poem_prompt
 from .state import State
 
 load_dotenv()
@@ -55,6 +55,19 @@ def extract_json(text):
             return None
     return None
 
+def is_poem_request(greeting_instructions: str) -> bool:
+    """Check if the user is requesting a poem (thơ lục bát)."""
+    if not greeting_instructions:
+        return False
+    
+    poem_keywords = [
+        "thơ", "thơ lục bát", "lục bát", "câu thơ", "bài thơ", 
+        "viết thơ", "làm thơ", "sáng tác thơ", "thơ việt nam"
+    ]
+    
+    text_lower = greeting_instructions.lower()
+    return any(keyword in text_lower for keyword in poem_keywords)
+
 def dominant_color_node(state: State) -> State:
     """Extract dominant color from the background image."""
     bg_path = state.background_path
@@ -79,12 +92,25 @@ def upload_image_node(state: State) -> State:
 def llm_node(state: State) -> State:
     llm = _get_model()
     user_prompt = user_prompt_template.format(**state.model_dump())
-
+    
+    # Check if user is requesting a poem
+    is_poem = is_poem_request(state.greeting_text_instructions)
+    
     try:
-        messages = [
-            SystemMessage(content=system_prompt),
-            HumanMessage(content=user_prompt)
-        ]
+        if is_poem:
+            # If poem is requested, use system_poem_prompt
+            messages = [
+                SystemMessage(content=system_poem_prompt),
+                HumanMessage(content=user_prompt)
+            ]
+            logger.info("Using poem template for poem request")
+        else:
+            # Normal case - use only system_prompt
+            messages = [
+                SystemMessage(content=system_prompt),
+                HumanMessage(content=user_prompt)
+            ]
+            logger.info("Using standard system prompt")
 
         response = llm.invoke(messages)
         parsed = extract_json(response.content)

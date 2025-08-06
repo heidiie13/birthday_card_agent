@@ -33,7 +33,7 @@ def _get_model(model: Optional[str] = None) -> Runnable:
             api_key=os.getenv("OPENAI_API_KEY"),
             model=model if model else os.getenv("MODEL_NAME", "misa-qwen3-235b"),
             default_headers={"App-Code": "fresher"},
-            temperature=0.7,
+            temperature=0.5,
             extra_body={
                 "chat_template_kwargs": {
                     "enable_thinking": False

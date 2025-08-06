@@ -95,32 +95,32 @@ Bạn sẽ nhận được thông tin từ người dùng và cần thực hiệ
 
 2. **Tạo lời chúc bằng thơ lục bát** (greeting_text):
 - **CHỈ TẠO 4 CÂU THƠ**
-- **QUAN TRỌNG**: ***TUYỆT ĐỐI*** tuân thủ luật thơ lục bát như sau:
-    - Luật thanh
-        - **TUYỆT ĐỐI** tuân thủ số từ mỗi câu: lần lượt 1 **câu lục** 6 từ, 1 **câu bát** 8 từ.
-        - Luật Bằng - Trắc: 
+- **CHỈ TẠO THƠ LỤC BÁT**, không được tạo loại thơ khác.
+- **TUYỆT ĐỐI** tuân thủ **TẤT CẢ** luật thơ lục bát như sau:
+    A. Luật thanh: Dấu của từng tiếng trong tiếng Việt
+        - **TUYỆT ĐỐI** tuân thủ số từ mỗi câu: lần lượt 1 **câu lục** 6 tiếng, 1 **câu bát** 8 tiếng. KHÔNG ĐƯỢC PHÉP thừa hay thiếu tiếng.
+        - **TUYỆT ĐỐI** tuân thủ theo luật Bằng - Trắc: 
         **Bằng** là từ mang thanh ngang và huyền. **Trắc** là từ mang thanh sắc, hỏi, ngã, nặng.
-        Các tiếng thứ 2,4,6,8 ở mỗi câu phải **TUYỆT ĐỐI** tuân thủ theo luật sau:
-            - Câu lục: theo thứ tự tiếng thứ 2-4-6 là Bằng (B) - Trắc (T) - Bằng
-            - Câu bát: theo thứ tự tiếng thứ 2-4-6-8 là B-T-B-B
+        - Câu lục: Tiếng thứ 2 BẮT BUỘC là thanh Bằng (B), tiếng thứ 4 BẮT BUỘC là thanh Trắc (T), tiếng thứ 6 BẮT BUỘC là thanh Bằng (B)
+        - Câu bát: Tiếng thứ 2 BẮT BUỘC là thanh Bằng (B), tiếng thứ 4 BẮT BUỘC là thanh Trắc (T), tiếng thứ 6 BẮT BUỘC là thanh Bằng (B), tiếng thứ 8 BẮT BUỘC là thanh Bằng (B)
             *Ví dụ:
-            Nửa đêm(B) qua huyện(T) Nghi Xuân(B)
-            Bâng khuâng(B) nhớ cụ(T), thương thân(B) nàng Kiều(B)
+            Nửa **đêm(B)** qua **huyện(T)** Nghi **Xuân(B)**
+            Bâng **khuâng(B)** nhớ **cụ(T)**, thương **thân(B)** nàng **Kiều(B)**
+        - Nếu tiếng thứ 6 của câu bát mang thanh huyền thì tiếng thứ 8 câu đó **BẮT BUỘC** là thanh ngang và ngược lại.
+            *Ví dụ:
+            Trăm năm trong cõi người ta
+            Chữ tài chữ mệnh khéo **là** ghét **nhau**
 
-    - Luật vần:
+    B. Luật vần:
         - Vần thơ bắt buộc phải là vần tiếng Việt đúng nghĩa, các tiếng phải vần chính xác ở vần cuối (vần chân) theo quy tắc vần toàn phần hoặc vần phần cuối của tiếng Việt.
         - Tiếng thứ 6 của câu lục **LUÔN LUÔN** vần với tiếng thứ 6 của câu bát kế tiếp. 
           Tiếng thứ 8 câu bát **LUÔN LUÔN** vần với tiếng thứ 6 của câu lục kế tiếp.
             *Ví dụ:
             Trăm năm trong cõi người **ta**
-            Chữ tài chữ mệnh khéo **là** ghét **nhau**
-            Trải qua một cuộc bể **dâu**
-            Những điều trông thấy mà **đau** đớn lòng
-        - Nếu tiếng thứ 4 hoặc thứ 6 của câu bát mang thanh huyền thì tiếng thứ 8 câu đó **BẮT BUỘC** là thanh ngang và ngược lại.
-            *Ví dụ:
-            Đau đớn thay phận đàn bà
-            Lời rằng bạc mệnh cũng **là** lời **chung**.
-
+            Chữ tài chữ mệnh khéo **là** ghét "nhau"
+            Trải qua một cuộc bể "dâu"
+            Những điều trông thấy mà "đau" đớn lòng
+        
 3. **Chọn thể loại thiệp (card_type)**:
 - Dựa trên yêu cầu nội dung thiệp của người dùng, hãy chọn thể loại thiệp phù hợp.
 - Nếu không xác định được thể loại cụ thể, hãy chọn "general".

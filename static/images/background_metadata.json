@@ -1,0 +1,98 @@
+[
+  {
+    "background_path": "static/images/backgrounds/back_23.png",
+    "color": "#ebdcce"
+  },
+  {
+    "background_path": "static/images/backgrounds/back_30.png",
+    "color": "#f4f8f7"
+  },
+  {
+    "background_path": "static/images/backgrounds/back_31.png",
+    "color": "#f3e4d4"
+  },
+  {
+    "background_path": "static/images/backgrounds/back_32.png",
+    "color": "#b00404"
+  },
+  {
+    "background_path": "static/images/backgrounds/back_33.png",
+    "color": "#ab0404"
+  },
+  {
+    "background_path": "static/images/backgrounds/back_34.png",
+    "color": "#940c14"
+  },
+  {
+    "background_path": "static/images/backgrounds/back_35.png",
+    "color": "#175360"
+  },
+  {
+    "background_path": "static/images/backgrounds/back_36.png",
+    "color": "#359292"
+  },
+  {
+    "background_path": "static/images/backgrounds/chucs.png",
+    "color": "#fcf6db"
+  },
+  {
+    "background_path": "static/images/backgrounds/chucs2.png",
+    "color": "#f8faf9"
+  },
+  {
+    "background_path": "static/images/backgrounds/back_15.jpg",
+    "color": "#f4dbd6"
+  },
+  {
+    "background_path": "static/images/backgrounds/back_16.jpg",
+    "color": "#f2e6ed"
+  },
+  {
+    "background_path": "static/images/backgrounds/back_21.jpg",
+    "color": "#e0eae3"
+  },
+  {
+    "background_path": "static/images/backgrounds/back_27.jpg",
+    "color": "#fbf7f3"
+  },
+  {
+    "background_path": "static/images/backgrounds/back_8.jpg",
+    "color": "#fcf4f3"
+  },
+  {
+    "background_path": "static/images/backgrounds/back_13.jpeg",
+    "color": "#eae3e0"
+  },
+  {
+    "background_path": "static/images/backgrounds/back_17.jpeg",
+    "color": "#eaf1f6"
+  },
+  {
+    "background_path": "static/images/backgrounds/back_31.jpeg",
+    "color": "#e8f0e2"
+  },
+  {
+    "background_path": "static/images/backgrounds/back_6.jpeg",
+    "color": "#fbeaf0"
+  },
+  {
+    "background_path": "static/images/backgrounds/back_10.webp",
+    "color": "#f8fbfb"
+  },
+  {
+    "background_path": "static/images/backgrounds/back_12.webp",
+    "color": "#c8eaf9"
+  },
+  {
+    "background_path": "static/images/backgrounds/back_22.webp",
+    "color": "#fcd7ec"
+  },
+  {
+    "background_path": "static/images/backgrounds/back_25.webp",
+    "color": "#fcfcf4"
+  },
+  {
+    "background_path": "static/images/backgrounds/back_5.webp",
+    "color": "#fbeaf1"
+  }
+]

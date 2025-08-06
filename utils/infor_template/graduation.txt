@@ -1,0 +1,3 @@
+static/images/foregrounds/graduation_1.png static/images/backgrounds/back_17.jpeg
+static/images/foregrounds/graduation_2.png static/images/backgrounds/back_31.jpeg
+static/images/foregrounds/graduation_3.png static/images/backgrounds/back_25.webp

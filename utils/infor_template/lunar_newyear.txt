@@ -1,0 +1,3 @@
+static/images/foregrounds/lunar_newyear_1.png static/images/backgrounds/back_34.png
+static/images/foregrounds/lunar_newyear_2.png static/images/backgrounds/back_34.png
+static/images/foregrounds/lunar_newyear_3.png static/images/backgrounds/back_34.png

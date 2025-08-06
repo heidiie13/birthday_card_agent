@@ -1,0 +1,3 @@
+static/images/foregrounds/newyear_1.png static/images/backgrounds/back_10.webp
+static/images/foregrounds/newyear_2.png static/images/backgrounds/back_27.jpg
+static/images/foregrounds/newyear_3.png static/images/backgrounds/back_23.png

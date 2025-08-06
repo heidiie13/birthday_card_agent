@@ -1,12 +1,13 @@
 # api
 fastapi[standard]==0.116.1
 
-# core agent
+# core
 langgraph==0.5.4
 langchain-core==0.3.72
 langchain-openai==0.3.28
+colorthief==0.2.1
+pilmoji==2.0.4
+emoji==1.6.3
 
 # ui
 streamlit==1.47.1
-pilmoji==2.0.4
-emoji==1.6.3

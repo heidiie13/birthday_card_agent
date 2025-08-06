@@ -1,10 +1,12 @@
-import json
 import os
+from typing import Optional
 import logging
+import json
 import re
 import uuid
-from datetime import datetime
 from dotenv import load_dotenv
+from functools import lru_cache
+
 from langchain_openai import ChatOpenAI
 from langchain_core.runnables import Runnable
 from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
@@ -13,7 +15,8 @@ from .tools import (merge_foreground_background,
                     add_text_to_image, 
                     get_random_font,
                     get_dominant_color,
-                    get_random_template_by_type
+                    get_random_template_by_type,
+                    get_best_matching_background,
                     )
 
 from .prompt import system_prompt, user_prompt_template, system_color_prompt, dominant_color_prompt_template
@@ -22,22 +25,22 @@ from .state import State
 load_dotenv()
 logger = logging.getLogger(__name__)
 
-    
-def _get_model() -> Runnable:
+@lru_cache(maxsize=4)
+def _get_model(model: Optional[str] = None) -> Runnable:
     try:
         llm = ChatOpenAI(
             base_url=os.getenv("OPENAI_BASE_URL"),
             api_key=os.getenv("OPENAI_API_KEY"),
-            model=os.getenv("MODEL_NAME"),
-            temperature=0.7,
+            model=model if model else os.getenv("MODEL_NAME", "misa-qwen3-235b"),
             default_headers={"App-Code": "fresher"},
+            temperature=0.7,
             extra_body={
-                # ...
                 "chat_template_kwargs": {
-                    "enable_thinking": False  # Hoặc False để tắt
+                    "enable_thinking": False
                 }
             }
         )
+        logger.info(f"Using model: {llm.model_name}")
     except Exception as e:
         logger.error(f"Error getting model: {e}")
         return None
@@ -63,15 +66,23 @@ def dominant_color_node(state: State) -> State:
     logger.info(f"Dominant color: {color}")
     return state
 
+def upload_image_node(state: State) -> State:
+    foreground_color = get_dominant_color(state.foreground_path)
+    best_background = get_best_matching_background(foreground_color)
+    state.background_path = best_background.get("background_path")
+    state.dominant_color = best_background.get("color")
+
+    logger.info(f"Foreground color: {foreground_color}")
+    logger.info(f"Selected background path: {state.background_path}")
+    return state
+
 def llm_node(state: State) -> State:
-    now = datetime.now().strftime("%d/%m/%Y")
     llm = _get_model()
     user_prompt = user_prompt_template.format(**state.model_dump())
-    sys_prompt = system_prompt.format(current_time = now)
 
     try:
         messages = [
-            SystemMessage(content=sys_prompt),
+            SystemMessage(content=system_prompt),
             HumanMessage(content=user_prompt)
         ]
 
@@ -89,16 +100,8 @@ def llm_node(state: State) -> State:
     except Exception as e:
         logger.error(f"Error creating messages: {e}")
         return state
-
     
     return state
-
-def route_random_template(state: State) -> State:
-    """Route to a random template based on card type."""
-    if state.foreground_path and state.background_path:
-        return "dominant_color"
-    
-    return "random_template"
 
 def random_template_node(state: State) -> State:
     """Select a random template for the card."""
@@ -164,10 +167,10 @@ def merge_node(state: State) -> State:
         state.merge_position = "right"
         state.text_ratio = 1 - state.merge_foreground_ratio - 0.02
         state.title_font_size = 150
-        state.font_size = 80
+        state.font_size = 100
 
     if state.merge_foreground_ratio < 1/2 and state.aspect_ratio < 1:
-        state.font_size = 70
+        state.font_size = 80
 
     state.text_position = position_map.get(state.merge_position)
     # Generate output path
@@ -234,3 +237,12 @@ def add_text_node(state: State) -> State:
 
     state.font_path = font_path
     return state
+
+def route_random_template(state: State) -> State:
+    """Route to a random template based on card type."""
+    if state.foreground_path and state.background_path:
+        return "dominant_color"
+    
+    if state.foreground_path and not state.background_path:
+        return "upload_image"
+    return "random_template"

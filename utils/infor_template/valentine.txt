@@ -1,0 +1,4 @@
+static/images/foregrounds/valentine_1.png static/images/backgrounds/back_6.jpeg
+static/images/foregrounds/valentine_2.png static/images/backgrounds/back_8.jpg
+static/images/foregrounds/valentine_3.png static/images/backgrounds/back_16.jpg
+static/images/foregrounds/valentine_4.png static/images/backgrounds/back_22.webp

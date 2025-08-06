@@ -1,24 +1,21 @@
 import json
 import logging
 import os
-from collections import Counter
 import random
 from typing import Optional
 from PIL import ImageDraw, ImageFont, Image, ImageDraw, ImageFont, ImageChops
 from pilmoji import Pilmoji
 from pilmoji.source import GoogleEmojiSource
+from colorthief import ColorThief
 
 logger = logging.getLogger(__name__)
 
-def get_dominant_color(image_path: str, resize=50) -> str:
+def get_dominant_color(image_path: str, quality=100) -> str:
     if not os.path.exists(image_path):
         raise FileNotFoundError(f"Image file not found: {image_path}")
-    
-    img = Image.open(image_path).convert("RGB")
-    img = img.resize((resize, resize))
-    pixels = list(img.getdata())
-    most_common = Counter(pixels).most_common(1)[0][0]
-    return '#{:02x}{:02x}{:02x}'.format(*most_common)
+    color_thief = ColorThief(image_path)
+    dominant_color = color_thief.get_color(quality=quality)
+    return '#{:02x}{:02x}{:02x}'.format(*dominant_color)
 
 def merge_foreground_background_with_blending(
     foreground_path: str,
@@ -489,16 +486,16 @@ def _get_wrapped(text, font, max_width):
         lines.append(line)
     return '\n'.join(lines)
 
-def get_templates_by_type(card_type: str, aspect_ratio: float = 3/4) -> list:
+def get_templates_by_type(card_type: str, aspect_ratio: float = 3/4, json_path: str = 'static/images/template_metadata.json') -> list:
     """
-    Get a list of image info dictionaries by type from the template_card_info.json file.
+    Get a list of image info dictionaries by type from metadata file.
     Args:
         card_type (str): The type name (e.g., 'birthday')
+        aspect_ratio (float): Aspect ratio of the templates to filter by.
+        json_path (str): Path to the JSON file containing template metadata.
     Returns:
         List[dict]: A list of image info dictionaries matching the type
     """
-
-    json_path = 'static/images/template_card_info.json'
     if not os.path.exists(json_path):
         return []
     with open(json_path, 'r', encoding='utf-8') as f:
@@ -508,11 +505,13 @@ def get_templates_by_type(card_type: str, aspect_ratio: float = 3/4) -> list:
             return []
     return [item for item in data if item.get('card_type') == card_type and item.get('aspect_ratio') == aspect_ratio]
 
+
 def get_random_template_by_type(card_type: str, aspect_ratio: float = 3/4) -> Optional[dict]:
     """
     Get a random template image info dictionary by type from the template_card_info.json file.
     Args:
         card_type (str): The type name (e.g., 'birthday')
+        aspect_ratio (float): Aspect ratio of the templates to filter by.
     Returns:
         dict: A random image info dictionary matching the type, or None if not found
     """
@@ -535,3 +534,81 @@ def get_random_font(fonts_dir: str = "static/fonts/text_fonts") -> str:
     if not files:
         raise FileNotFoundError(f"No font files found in {fonts_dir}")
     return os.path.join(fonts_dir, random.choice(files))
+
+def hex_to_rgb(hex_color: str) -> tuple:
+    """
+    Convert hex color to RGB tuple.
+    
+    Args:
+        hex_color (str): Hex color string (e.g., '#ff0000' or 'ff0000')
+    
+    Returns:
+        tuple: RGB values as (r, g, b)
+    """
+    hex_color = hex_color.lstrip('#')
+    return tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4))
+
+def color_distance(color1: tuple, color2: tuple) -> float:
+    """
+    Calculate the Euclidean distance between two RGB colors.
+    
+    Args:
+        color1 (tuple): First RGB color as (r, g, b)
+        color2 (tuple): Second RGB color as (r, g, b)
+    
+    Returns:
+        float: Distance between the two colors
+    """
+    return sum((c1 - c2) ** 2 for c1, c2 in zip(color1, color2)) ** 0.5
+
+def get_best_matching_background(target_color: str, json_path: str = 'static/images/background_metadata.json') -> Optional[dict]:
+    """
+    Get the background with the most similar color to the target color.
+    
+    Args:
+        target_color (str): Target color in hex format (e.g., '#ff0000')
+        json_path (str): Path to the JSON file containing background metadata with color info
+    
+    Returns:
+        Optional[dict]: Background info dictionary with the most similar color, or None if not found
+    """
+    if not os.path.exists(json_path):
+        logger.warning(f"Background metadata file not found: {json_path}")
+        return None
+    
+    try:
+        with open(json_path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+    except Exception as e:
+        logger.error(f"Error reading background metadata: {e}")
+        return None
+    
+    if not data:
+        logger.warning("No background data found in metadata file")
+        return None
+    
+    target_rgb = hex_to_rgb(target_color)
+    best_match = None
+    min_distance = float('inf')
+    
+    for background in data:
+        if 'color' not in background:
+            continue
+        
+        try:
+            bg_rgb = hex_to_rgb(background['color'])
+            distance = color_distance(target_rgb, bg_rgb)
+            
+            if distance < min_distance:
+                min_distance = distance
+                best_match = background
+        except Exception as e:
+            logger.warning(f"Error processing background color {background.get('color', 'unknown')}: {e}")
+            continue
+    
+    if best_match:
+        logger.info(f"Found best matching background: {best_match['background_path']} with color {best_match['color']} (distance: {min_distance:.2f})")
+    else:
+        logger.warning("No matching background found")
+    
+    return best_match

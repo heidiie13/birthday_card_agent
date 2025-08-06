@@ -7,13 +7,18 @@ class CardType(str, Enum):
     Enum representing different types of cards.
     """
     birthday = "birthday"
-    graduation = "graduation"
-    wedding = "wedding"
-    valentine = "valentine"
-    new_year = "new_year"
-    general = "general"
     christmas = "christmas"
-    teacher_day = "teacher_day"
+    graduation = "graduation"
+    newyear = "newyear"
+    lunar_newyear = "lunar_newyear"
+    mid_autumn_festival = "mid_autumn_festival"
+    valentine = "valentine"
+    vietnam_teacherday = "vietnam_teacherday"
+    vietnam_nationalday = "vietnam_nationalday"
+    vietnam_womenday = "vietnam_womenday"
+    wedding = "wedding"
+    international_womenday = "international_womenday"
+    general = "general"
 
 class AspectRatio(float, Enum):
     """
@@ -34,21 +39,9 @@ class GenerateRequest(BaseModel):
             "example": {
                 "greeting_text_instructions": "Tạo lời chúc sinh nhật vui vẻ và ý nghĩa cho bạn thân",
                 "background_path": "static/images/backgrounds/back_23.png",
-                "foreground_path": "static/images/foregrounds/fore_8.png",
+                "foreground_path": "static/images/foregrounds/birthday_4.png",
                 "merged_image_path": "static/images/card_types/birthday/77cf8c00-0e67-4ea5-96e9-b29d530a3fbc.png",
                 "aspect_ratio": 0.75
-            }
-        }
-
-class BackgroundResponse(BaseModel):
-    background_url: str = Field(..., description="URL of the background image")
-    background_path: str = Field(..., description="Path to the background image")
-
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "background_url": "https://example.com/static/images/backgrounds/back_23.png",
-                "background_path": "static/images/backgrounds/back_23.png"
             }
         }
 
@@ -71,6 +64,40 @@ class GenerateResponse(BaseModel):
         json_schema_extra = {
             "example": {
                 "card_url": "https://example.com/static/images/cards/generated_card.png"
+            }
+        }
+
+class BackgroundUploadResponse(BaseModel):
+    background_url: str = Field(..., description="URL of the background image")
+    background_path: str = Field(..., description="Path to the background image")
+    color: str = Field(..., description="Dominant color of the background image")
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "background_url": "https://example.com/static/images/backgrounds/uploads/background.png",
+                "background_path": "static/images/backgrounds/uploads/background.png",
+                "color": "#FF5733"
+            }
+        }
+
+class TemplateUploadResponse(BaseModel):
+    merged_image_url: str = Field(..., description="URL of the merged template image")
+    merged_image_path: str = Field(..., description="Path to the merged template image")
+    foreground_path: str = Field(..., description="Path to the foreground image")
+    background_path: str = Field(..., description="Path to the background image")
+    card_type: str = Field(..., description="Type of the card")
+    aspect_ratio: float = Field(..., description="Aspect ratio of the template")
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "merged_image_url": "https://example.com/static/images/card_types/birthday/template.png",
+                "merged_image_path": "static/images/card_types/birthday/template.png",
+                "foreground_path": "static/images/foregrounds/uploads/foreground.png",
+                "background_path": "static/images/backgrounds/uploads/background.png",
+                "card_type": "birthday",
+                "aspect_ratio": 0.75
             }
         }
 

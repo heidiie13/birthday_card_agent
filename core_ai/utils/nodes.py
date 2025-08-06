@@ -1,9 +1,12 @@
-import json
 import os
+from typing import Optional
 import logging
+import json
 import re
 import uuid
 from dotenv import load_dotenv
+from functools import lru_cache
+
 from langchain_openai import ChatOpenAI
 from langchain_core.runnables import Runnable
 from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
@@ -22,21 +25,22 @@ from .state import State
 load_dotenv()
 logger = logging.getLogger(__name__)
 
-    
-def _get_model() -> Runnable:
+@lru_cache(maxsize=4)
+def _get_model(model: Optional[str] = None) -> Runnable:
     try:
         llm = ChatOpenAI(
             base_url=os.getenv("OPENAI_BASE_URL"),
             api_key=os.getenv("OPENAI_API_KEY"),
-            model=os.getenv("MODEL_NAME"),
-            temperature=0.7,
+            model=model if model else os.getenv("MODEL_NAME", "misa-qwen3-235b"),
             default_headers={"App-Code": "fresher"},
-            # extra_body={
-            #     "chat_template_kwargs": {
-            #         "enable_thinking": False
-            #     }
-            # }
+            temperature=0.7,
+            extra_body={
+                "chat_template_kwargs": {
+                    "enable_thinking": False
+                }
+            }
         )
+        logger.info(f"Using model: {llm.model_name}")
     except Exception as e:
         logger.error(f"Error getting model: {e}")
         return None

@@ -55,18 +55,43 @@ def extract_json(text):
             return None
     return None
 
-def is_poem_request(greeting_instructions: str) -> bool:
-    """Check if the user is requesting a poem (thơ lục bát)."""
+def is_poem_request(greeting_instructions: str) -> dict:
+    """Check if the user is requesting a poem and return poem type."""
     if not greeting_instructions:
-        return False
+        return {"is_poem": False, "poem_type": None}
     
-    poem_keywords = [
-        "thơ", "thơ lục bát", "lục bát", "câu thơ", "bài thơ", 
-        "viết thơ", "làm thơ", "sáng tác thơ", "thơ việt nam"
+    poem_68_keywords = [
+    "thơ", "thơ lục bát", "lục bát", "thơ việt", "thơ truyền thống",
+    "bài thơ", "câu thơ", "làm thơ", "viết thơ", "sáng tác thơ",
+    "thơ tiếng việt", "thơ cổ", "thơ dân gian", "thơ luật", "thơ phổ biến",
+    "thơ 6-8", "thơ 6 8", "thơ 68", "thơ vần", "thơ có vần"
     ]
-    
+    poem_5words_keywords = [
+    "thơ 5 chữ", "thơ năm chữ", "thơ ngũ ngôn", "thơ 5 chữ hiện đại",
+    "thơ 5 chữ tự do", "thơ năm tiếng", "thơ 5 chữ ngắn", "thể thơ 5 chữ"
+    ]   
+    poem_4words_keywords = [
+    "thơ 4 chữ", "thơ tứ ngôn", "thơ bốn chữ", "thơ ngắn 4 chữ",
+    "thể thơ 4 chữ", "thơ 4 tiếng", "thơ 4 âm tiết"
+    ]
+    poem_7768_keywords = [
+    "thơ song thất lục bát", "song thất lục bát", "thơ 7-7-6-8", "thơ 7768",
+    "thơ truyền thống việt", "thơ thất thất lục bát", "thơ cổ điển",
+    "thơ dài dòng", "thơ cổ phong", "thơ nhịp 7 7 6 8"
+    ]
     text_lower = greeting_instructions.lower()
-    return any(keyword in text_lower for keyword in poem_keywords)
+    
+    # Check for specific poem types first (more specific keywords)
+    if any(keyword in text_lower for keyword in poem_7768_keywords):
+        return {"is_poem": True, "poem_type": "song_that_luc_bat"}
+    elif any(keyword in text_lower for keyword in poem_5words_keywords):
+        return {"is_poem": True, "poem_type": "ngu_ngon"}
+    elif any(keyword in text_lower for keyword in poem_4words_keywords):
+        return {"is_poem": True, "poem_type": "tu_ngon"}
+    elif any(keyword in text_lower for keyword in poem_68_keywords):
+        return {"is_poem": True, "poem_type": "luc_bat"}
+    
+    return {"is_poem": False, "poem_type": None}
 
 def dominant_color_node(state: State) -> State:
     """Extract dominant color from the background image."""
@@ -94,16 +119,16 @@ def llm_node(state: State) -> State:
     user_prompt = user_prompt_template.format(**state.model_dump())
     
     # Check if user is requesting a poem
-    is_poem = is_poem_request(state.greeting_text_instructions)
+    poem_info = is_poem_request(state.greeting_text_instructions)
     
     try:
-        if is_poem:
+        if poem_info["is_poem"]:
             # If poem is requested, use system_poem_prompt
             messages = [
                 SystemMessage(content=system_poem_prompt),
                 HumanMessage(content=user_prompt)
             ]
-            logger.info("Using poem template for poem request")
+            logger.info(f"Using poem template for poem request - Type: {poem_info['poem_type']}")
         else:
             # Normal case - use only system_prompt
             messages = [
@@ -187,15 +212,15 @@ def merge_node(state: State) -> State:
         state.merge_foreground_ratio = 1/3
 
     state.text_ratio = 1 - state.merge_foreground_ratio + 0.05
-    is_poem = is_poem_request(state.greeting_text_instructions)
-    state.font_size = 80 if not is_poem else 70
+    poem_info = is_poem_request(state.greeting_text_instructions)
+    state.font_size = 80 if not poem_info["is_poem"] else 70
 
     if state.aspect_ratio > 1:
-        state.merge_foreground_ratio = state.merge_foreground_ratio if not is_poem else 1/3
+        state.merge_foreground_ratio = state.merge_foreground_ratio if not poem_info["is_poem"] else 1/3
         state.merge_position = "right"
         state.text_ratio = 1 - state.merge_foreground_ratio - 0.02
         state.title_font_size = 130
-        state.font_size = 100 if not is_poem else 80
+        state.font_size = 100 if not poem_info["is_poem"] else 80
 
     state.text_position = position_map.get(state.merge_position)
     output_path = f"static/images/cards/{uuid.uuid4().hex}.png"

@@ -187,15 +187,15 @@ def merge_node(state: State) -> State:
         state.merge_foreground_ratio = 1/3
 
     state.text_ratio = 1 - state.merge_foreground_ratio + 0.05
+    is_poem = is_poem_request(state.greeting_text_instructions)
+    state.font_size = 80 if not is_poem else 70
 
     if state.aspect_ratio > 1:
+        state.merge_foreground_ratio = state.merge_foreground_ratio if not is_poem else 1/3
         state.merge_position = "right"
         state.text_ratio = 1 - state.merge_foreground_ratio - 0.02
-        state.title_font_size = 150
-        state.font_size = 100
-
-    if state.merge_foreground_ratio < 1/2 and state.aspect_ratio < 1:
-        state.font_size = 80
+        state.title_font_size = 130
+        state.font_size = 100 if not is_poem else 80
 
     state.text_position = position_map.get(state.merge_position)
     output_path = f"static/images/cards/{uuid.uuid4().hex}.png"

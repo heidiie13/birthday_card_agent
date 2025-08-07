@@ -5,7 +5,7 @@ import shutil
 from typing import List
 import logging
 from fastapi import HTTPException, Request, UploadFile
-from api.models import ImageUploadResponse, TemplateResponse, GenerateRequest, GenerateResponse, BackgroundUploadResponse, TemplateUploadResponse, CardType
+from api.models import TemplateResponse, GenerateRequest, GenerateResponse, BackgroundUploadResponse, TemplateUploadResponse, CardType
 
 from core_ai.utils.tools import get_templates_by_type, get_random_template_by_type, get_dominant_color
 from core_ai.graph import build_card_gen_graph
@@ -47,57 +47,85 @@ def get_random_template_service(card_type: str, aspect_ratio: float, request: Re
         raise HTTPException(status_code=404, detail="No template found")
     return TemplateResponse(**template)
 
-def generate_card_service(req: GenerateRequest, request: Request, foreground_file: UploadFile = None) -> GenerateResponse:
+def generate_card_service(req: GenerateRequest, request: Request) -> GenerateResponse:
+    """Generate card using templates only."""
+    
+    has_foreground = bool(req.foreground_path)
+    has_background = bool(req.background_path)
+    has_merged = bool(req.merged_image_path)
+    
+    if has_foreground or has_background or has_merged:
+        # If any path is provided, all must be provided
+        if not (has_foreground and has_background and has_merged):
+            raise HTTPException(
+                status_code=400, 
+                detail="When using specific template, all three paths (foreground_path, background_path, merged_image_path) must be provided"
+            )
+    
     input = {
         "greeting_text_instructions": req.greeting_text_instructions,
         "aspect_ratio": req.aspect_ratio,
     }
     
-    # Handle foreground file upload if provided
-    if foreground_file:
-        allowed_ext = (".png", ".jpg", ".jpeg", ".webp")
-        if not foreground_file.filename.lower().endswith(allowed_ext):
-            raise HTTPException(status_code=400, detail="Only image files are allowed (png, jpg, jpeg, webp)")
-
-        upload_dir = os.path.join("static", "images", "foregrounds", "uploads")
-        os.makedirs(upload_dir, exist_ok=True)
-        
-        file_path = os.path.join(upload_dir, foreground_file.filename)
-        with open(file_path, "wb") as buffer:
-            shutil.copyfileobj(foreground_file.file, buffer)
-        
-        input["foreground_path"] = file_path
-    elif req.foreground_path:
+    # Add template paths if provided
+    if has_foreground and has_background and has_merged:
         input["foreground_path"] = req.foreground_path
-    
-    if req.merged_image_path and req.background_path:
-        input["merged_image_path"] = req.merged_image_path
         input["background_path"] = req.background_path
+        input["merged_image_path"] = req.merged_image_path
 
     try:
         result = graph.invoke(input)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
     card_path = result.get("card_path")
     if not card_path:
         raise HTTPException(status_code=500, detail="Card generation failed")
+    
     card_url = str(request.base_url).rstrip("/") + f"/{card_path.replace(os.sep, '/')}"
     return GenerateResponse(card_url=card_url)
 
-def upload_image_service(file: UploadFile, request: Request) -> ImageUploadResponse:
+async def generate_card_with_upload_service(
+    greeting_text_instructions: str, 
+    file: UploadFile, 
+    aspect_ratio: float, 
+    request: Request
+) -> GenerateResponse:
+    """Generate card using uploaded foreground image."""
+    # Validate file type
     allowed_ext = (".png", ".jpg", ".jpeg", ".webp")
     if not file.filename.lower().endswith(allowed_ext):
-        raise ValueError("Only image files are allowed (png, jpg, jpeg, webp)")
+        raise HTTPException(status_code=400, detail="Only image files are allowed (png, jpg, jpeg, webp)")
 
+    # Save uploaded file
     upload_dir = os.path.join("static", "images", "foregrounds", "uploads")
     os.makedirs(upload_dir, exist_ok=True)
     
     file_path = os.path.join(upload_dir, file.filename)
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
+    
+    # Validate foreground path exists
+    if not os.path.exists(file_path):
+        raise HTTPException(status_code=500, detail="Failed to save uploaded image")
+    
+    input = {
+        "greeting_text_instructions": greeting_text_instructions,
+        "aspect_ratio": aspect_ratio.value,
+        "foreground_path": file_path,
+    }
 
-    file_url = str(request.base_url).rstrip("/") + f"/{file_path.replace(os.sep, '/')}"
-    return ImageUploadResponse(foreground_url=file_url, foreground_path=file_path)
+    try:
+        result = graph.invoke(input)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+    card_path = result.get("card_path")
+    if not card_path:
+        raise HTTPException(status_code=500, detail="Card generation failed")
+    
+    card_url = str(request.base_url).rstrip("/") + f"/{card_path.replace(os.sep, '/')}"
+    return GenerateResponse(card_url=card_url)
 
 def upload_background_service(file: UploadFile, request: Request) -> BackgroundUploadResponse:
     allowed_ext = (".png", ".jpg", ".jpeg", ".webp")

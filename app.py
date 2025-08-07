@@ -68,7 +68,7 @@ def main():
         elif st.session_state.current_customize_mode != customize_mode:
             if not customize_mode:
                 st.session_state.pop("uploaded_template", None)
-                st.session_state.pop("uploaded_foreground", None)
+                st.session_state.pop("uploaded_file_info", None)
                 st.session_state.pop("last_uploaded_file", None)
                 st.session_state.pop("selected_template", None)
                 st.session_state.pop("random_template", None)
@@ -91,7 +91,7 @@ def main():
                 elif st.session_state.current_mode != mode:
                     if st.session_state.current_mode == "Tải ảnh lên":
                         st.session_state.pop("uploaded_template", None)
-                        st.session_state.pop("uploaded_foreground", None)
+                        st.session_state.pop("uploaded_file_info", None)
                         st.session_state.pop("last_uploaded_file", None)
                     elif st.session_state.current_mode == "Chọn mẫu":
                         st.session_state.pop("selected_template", None)
@@ -99,7 +99,7 @@ def main():
                         st.session_state.pop("random_template", None)
                     
                     st.session_state.current_mode = mode
-                    st.session_state.pop("generated_card", None)  
+                    st.session_state.pop("generated_card", None)
                 
                 if mode in ["Chọn mẫu", "Ngẫu nhiên"]:
                     card_type = st.selectbox(
@@ -141,24 +141,7 @@ def main():
                     st.session_state.current_aspect_ratio = selected_aspect_ratio
                 elif st.session_state.current_aspect_ratio != selected_aspect_ratio:
                     st.session_state.current_aspect_ratio = selected_aspect_ratio
-                    st.session_state.pop("generated_card", None)  
-                    
-                    if mode == "Tải ảnh lên" and "uploaded_template" in st.session_state and "uploaded_foreground" in st.session_state:
-                        fg_path = st.session_state.uploaded_foreground.get("foreground_path")
-                        fg_url = st.session_state.uploaded_foreground.get("foreground_url")
-                        
-                        # Get existing background info from uploaded_template
-                        current_template = st.session_state.uploaded_template
-                        bg_path = current_template.get("background_path")
-                        bg_url = current_template.get("background_url")
-
-                        st.session_state.uploaded_template = {
-                            "foreground_path": fg_path,
-                            "background_path": bg_path,
-                            "foreground_url": fg_url,
-                            "background_url": bg_url,
-                            "aspect_ratio": selected_aspect_ratio
-                        }
+                    st.session_state.pop("generated_card", None)
                 
                 st.divider()
                 
@@ -227,47 +210,32 @@ def main():
 
                     if "last_uploaded_file" not in st.session_state:
                         st.session_state.last_uploaded_file = None
-                    if "uploaded_foreground" not in st.session_state:
-                        st.session_state.uploaded_foreground = None
+                    if "uploaded_file_info" not in st.session_state:
+                        st.session_state.uploaded_file_info = None
                         
                     if uploaded_file and uploaded_file != st.session_state.last_uploaded_file:
                         st.session_state.pop("uploaded_template", None)
                         st.session_state.pop("generated_card", None)
                         
-                        files = {"file": uploaded_file}
-                        try:
-                            upload_resp = requests.post(f"{BACKEND_URL}/upload-foreground", files=files)
-                            upload_resp.raise_for_status()
-                            upload_data = upload_resp.json()
-                            if "error" not in upload_data:
-                                fg_path = upload_data.get("foreground_path")
-                                fg_url = upload_data.get("foreground_url")
-                                st.session_state.uploaded_foreground = {
-                                    "foreground_path": fg_path,
-                                    "foreground_url": fg_url
-                                }
-                                st.session_state.last_uploaded_file = uploaded_file  
-                                st.success("✅ Ảnh đã upload thành công!")
-                            else:
-                                st.error(f"Lỗi upload: {upload_data['error']}")
-                        except Exception as e:
-                            st.error(f"Lỗi khi upload: {e}")
+                        # Store file info for later use
+                        st.session_state.uploaded_file_info = {
+                            "file": uploaded_file,
+                            "filename": uploaded_file.name
+                        }
+                        st.session_state.last_uploaded_file = uploaded_file
+                        st.success("✅ Ảnh đã chọn thành công!")
                         st.rerun()
 
-                    if "uploaded_foreground" in st.session_state and st.session_state.uploaded_foreground:
+                    if "uploaded_file_info" in st.session_state and st.session_state.uploaded_file_info:
                         st.divider()
                         if "uploaded_template" not in st.session_state:
-                            fg_path = st.session_state.uploaded_foreground.get("foreground_path")
-                            fg_url = st.session_state.uploaded_foreground.get("foreground_url")
                             st.session_state.uploaded_template = {
-                                "foreground_path": fg_path,
-                                "foreground_url": fg_url,
+                                "has_upload": True,
                                 "aspect_ratio": selected_aspect_ratio
                             }
                         
-                        uploaded_template = st.session_state.uploaded_template
-                        if uploaded_template.get('foreground_url'):
-                            st.image(uploaded_template['foreground_url'], caption="Ảnh đã upload", width=200)
+                        # Display uploaded file name
+                        st.info(f"📁 Ảnh đã chọn: {st.session_state.uploaded_file_info['filename']}")
         
         st.session_state.selected_aspect_ratio = selected_aspect_ratio
         
@@ -278,35 +246,54 @@ def main():
             if not greeting_text:
                 st.error("Vui lòng nhập yêu cầu nội dung thiệp!")
             else:
-                selected_template_gen = None
-                if not customize_mode:
-                    selected_template_gen = None  
-                elif mode == "Ngẫu nhiên" and "random_template" in st.session_state:
-                    selected_template_gen = st.session_state.random_template
-                elif mode == "Chọn mẫu" and "selected_template" in st.session_state:
-                    selected_template_gen = st.session_state.selected_template
-                elif mode == "Tải ảnh lên" and "uploaded_template" in st.session_state:
-                    selected_template_gen = st.session_state.uploaded_template
-
-                payload = {"greeting_text_instructions": greeting_text}
-                payload["aspect_ratio"] = st.session_state.get("selected_aspect_ratio", 3/4)
-
-                if selected_template_gen:
-                    bg_path = selected_template_gen.get("background_path")
-                    fg_path = selected_template_gen.get("foreground_path")
-                    merged_path = selected_template_gen.get("merged_image_path")
-                    if bg_path:
-                        payload["background_path"] = bg_path
-                    if fg_path:
-                        payload["foreground_path"] = fg_path
-                    if merged_path:
-                        payload["merged_image_path"] = merged_path
-                        
-                logger.info(f"Payload for card generation: {payload}")
+                # Check if this is upload mode
+                is_upload_mode = (customize_mode and mode == "Tải ảnh lên" and 
+                                "uploaded_file_info" in st.session_state and 
+                                st.session_state.uploaded_file_info)
                 
                 with st.status("Đang tạo thiệp...", expanded=True):
                     try:
-                        resp = requests.post(f"{BACKEND_URL}/generate-card", json=payload)
+                        if is_upload_mode:
+                            # Use upload endpoint for file upload mode
+                            uploaded_file = st.session_state.uploaded_file_info["file"]
+                            
+                            # Reset file pointer to beginning
+                            uploaded_file.seek(0)
+                            
+                            files = {"file": uploaded_file}
+                            data = {
+                                "greeting_text_instructions": greeting_text,
+                                "aspect_ratio": st.session_state.get("selected_aspect_ratio", 3/4)
+                            }
+                            
+                            resp = requests.post(f"{BACKEND_URL}/generate-card-with-upload", 
+                                               files=files, data=data)
+                        else:
+                            # Use regular template-based generation
+                            selected_template_gen = None
+                            if not customize_mode:
+                                selected_template_gen = None  
+                            elif mode == "Ngẫu nhiên" and "random_template" in st.session_state:
+                                selected_template_gen = st.session_state.random_template
+                            elif mode == "Chọn mẫu" and "selected_template" in st.session_state:
+                                selected_template_gen = st.session_state.selected_template
+
+                            payload = {"greeting_text_instructions": greeting_text}
+                            payload["aspect_ratio"] = st.session_state.get("selected_aspect_ratio", 3/4)
+
+                            if selected_template_gen:
+                                bg_path = selected_template_gen.get("background_path")
+                                fg_path = selected_template_gen.get("foreground_path")
+                                merged_path = selected_template_gen.get("merged_image_path")
+                                if bg_path:
+                                    payload["background_path"] = bg_path
+                                if fg_path:
+                                    payload["foreground_path"] = fg_path
+                                if merged_path:
+                                    payload["merged_image_path"] = merged_path
+                            
+                            resp = requests.post(f"{BACKEND_URL}/generate-card", json=payload)
+                        
                         resp.raise_for_status()
                         result = resp.json()
                         st.session_state.generated_card = result

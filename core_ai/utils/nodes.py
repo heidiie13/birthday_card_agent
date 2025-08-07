@@ -34,11 +34,11 @@ def _get_model(model: Optional[str] = None) -> Runnable:
             model=model if model else os.getenv("MODEL_NAME", "misa-qwen3-235b"),
             default_headers={"App-Code": "fresher"},
             temperature=0.5,
-            extra_body={
-                "chat_template_kwargs": {
-                    "enable_thinking": False
-                }
-            }
+            # extra_body={
+            #     "chat_template_kwargs": {
+            #         "enable_thinking": False
+            #     }
+            # }
         )
         logger.info(f"Using model: {llm.model_name}")
     except Exception as e:

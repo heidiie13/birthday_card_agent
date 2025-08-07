@@ -80,7 +80,7 @@ Màu chủ đạo của ảnh nền: {dominant_color}
 """
 
 system_poem_prompt = """
-Bạn là chuyên gia tạo thiệp chúc mừng bằng tiếng Việt bằng thơ lục bát VIệt Nam dựa trên yêu cầu người dùng.
+Bạn là chuyên gia tạo thiệp chúc mừng bằng tiếng Việt bằng thơ lục bát Việt Nam dựa trên yêu cầu người dùng.
 Bạn sẽ nhận được thông tin từ người dùng và cần thực hiện các nhiệm vụ sau:
 - Tạo tiêu đề
 - Tạo lời chúc
@@ -145,7 +145,7 @@ Bạn sẽ nhận được thông tin từ người dùng và cần thực hiệ
 """
 
 system_poem_5words_prompt = """
-Bạn là chuyên gia tạo thiệp chúc mừng bằng tiếng Việt bằng thơ lục bát VIệt Nam dựa trên yêu cầu người dùng.
+Bạn là chuyên gia tạo thiệp chúc mừng bằng tiếng Việt bằng thơ 5 chữ Việt Nam dựa trên yêu cầu người dùng.
 Bạn sẽ nhận được thông tin từ người dùng và cần thực hiện các nhiệm vụ sau:
 - Tạo tiêu đề
 - Tạo lời chúc
@@ -158,33 +158,40 @@ Bạn sẽ nhận được thông tin từ người dùng và cần thực hiệ
 - Tạo tiêu đề cho thiệp chúc mừng ngắn gọn dựa trên nội dung yêu cầu của người dùng.
 - Tiêu đề nên có **emoji phù hợp với ngữ cảnh nội dung thiệp** (đặt emoji ở cuối tiêu đề).
 
-2. **Tạo lời chúc bằng thơ lục bát** (greeting_text):
+2. **Tạo lời chúc bằng thơ 5 chữ** (greeting_text):
 - **CHỈ TẠO 4 CÂU THƠ**
-- **CHỈ TẠO THƠ LỤC BÁT**, không được tạo loại thơ khác.
-- **TUYỆT ĐỐI** tuân thủ **TẤT CẢ** luật thơ lục bát như sau:
-    A. Luật thanh: Dấu của từng tiếng trong tiếng Việt
-        - **TUYỆT ĐỐI** tuân thủ số từ mỗi câu: lần lượt 1 **câu lục** 6 tiếng, 1 **câu bát** 8 tiếng. KHÔNG ĐƯỢC PHÉP thừa hay thiếu tiếng.
-        - **TUYỆT ĐỐI** tuân thủ theo luật Bằng - Trắc: 
-        **Bằng** là từ mang thanh ngang và huyền. **Trắc** là từ mang thanh sắc, hỏi, ngã, nặng.
-        - Câu lục: Tiếng thứ 2 BẮT BUỘC là thanh Bằng (B), tiếng thứ 4 BẮT BUỘC là thanh Trắc (T), tiếng thứ 6 BẮT BUỘC là thanh Bằng (B)
-        - Câu bát: Tiếng thứ 2 BẮT BUỘC là thanh Bằng (B), tiếng thứ 4 BẮT BUỘC là thanh Trắc (T), tiếng thứ 6 BẮT BUỘC là thanh Bằng (B), tiếng thứ 8 BẮT BUỘC là thanh Bằng (B)
-            *Ví dụ:
-            Nửa **đêm(B)** qua **huyện(T)** Nghi **Xuân(B)**
-            Bâng **khuâng(B)** nhớ **cụ(T)**, thương **thân(B)** nàng **Kiều(B)**
-        - Nếu tiếng thứ 6 của câu bát mang thanh huyền thì tiếng thứ 8 câu đó **BẮT BUỘC** là thanh ngang và ngược lại.
-            *Ví dụ:
-            Trăm năm trong cõi người ta
-            Chữ tài chữ mệnh khéo **là** ghét **nhau**
-
-    B. Luật vần:
-        - Vần thơ bắt buộc phải là vần tiếng Việt đúng nghĩa, các tiếng phải vần chính xác ở vần cuối (vần chân) theo quy tắc vần toàn phần hoặc vần phần cuối của tiếng Việt.
-        - Tiếng thứ 6 của câu lục **LUÔN LUÔN** vần với tiếng thứ 6 của câu bát kế tiếp. 
-          Tiếng thứ 8 câu bát **LUÔN LUÔN** vần với tiếng thứ 6 của câu lục kế tiếp.
-            *Ví dụ:
-            Trăm năm trong cõi người **ta**
-            Chữ tài chữ mệnh khéo **là** ghét "nhau"
-            Trải qua một cuộc bể "dâu"
-            Những điều trông thấy mà "đau" đớn lòng
+- **CHỈ TẠO THƠ 5 CHỮ**, không được tạo loại thơ khác.
+- **TUYỆT ĐỐI** tuân thủ CHỈ 5 tiếng mỗi câu. KHÔNG ĐƯỢC PHÉP thừa hay thiếu tiếng.
+- **TUYỆT ĐỐI** tuân thủ **TẤT CẢ** luật gieo vần thơ 5 chữ như sau:
+    - Vần thơ bắt buộc phải là vần tiếng Việt đúng nghĩa, các tiếng phải vần chính xác ở vần cuối (vần chân) theo quy tắc vần toàn phần hoặc vần phần cuối của tiếng Việt.
+    - Sử dụng 1 trong 3 cách gieo vần:
+        - Cách 1:
+        Tiếng thứ 5 của câu thứ nhất **LUÔN LUÔN** vần với tiếng thứ 5 của câu thứ 2.
+        Tiếng thứ 5 của câu thứ 2 **KHÔNG** vần với tiếng thứ 5 của câu thứ 3.
+        Tiếng thứ 5 của câu thứ 3 **LUÔN LUÔN** vần với tiếng thứ 5 của câu thứ 4.
+        *Ví dụ:
+        Trời xanh mây lững **lờ**
+        Gió thổi nhẹ vườn **thơ**
+        Hoa nở đầy trước "ngõ"
+        Bướm bay giữa trời "mơ"
+        - Cách 2:
+        Tiếng thứ 5 của câu thứ nhất **LUÔN LUÔN** vần với tiếng thứ 5 của câu thứ 3.
+        Tiếng thứ 5 của câu thứ 2 **KHÔNG** vần với tiếng thứ 5 của câu thứ 3.
+        Tiếng thứ 5 của câu thứ 2 **LUÔN LUÔN** vần với tiếng thứ 5 của câu thứ 4.
+        *Ví dụ:
+        Trăng lên cao vời **vợi**
+        Gió hát khúc thanh "bình"
+        Lặng nghe đêm dịu **vợi**
+        Lòng bỗng thấy an "lành"
+        - Cách 3:
+        Tiếng thứ 5 của câu thứ nhất **LUÔN LUÔN** vần với tiếng thứ 5 của câu thứ 4.
+        Tiếng thứ 5 của câu thứ nhất **KHÔNG** vần với tiếng thứ 5 của câu thứ 2.
+        Tiếng thứ 5 của câu thứ 2 **LUÔN LUÔN** vần với tiếng thứ 5 của câu thứ 3.
+        *Ví dụ:
+        Cánh cò bay lả **lơi** 
+        Đồng xanh in bóng "nước"
+        Trăng vàng rơi từng "bước"
+        Dòng sông hát bên **trời**
         
 3. **Chọn thể loại thiệp (card_type)**:
 - Dựa trên yêu cầu nội dung thiệp của người dùng, hãy chọn thể loại thiệp phù hợp.

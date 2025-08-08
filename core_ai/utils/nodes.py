@@ -19,7 +19,7 @@ from .tools import (merge_foreground_background,
                     get_best_matching_background,
                     )
 
-from .prompt import system_prompt, user_prompt_template, system_color_prompt, dominant_color_prompt_template, system_poem_prompt
+from .prompt import system_prompt, user_prompt_template, system_color_prompt, dominant_color_prompt_template, system_poem_68_prompt, system_poem_5words_prompt, system_poem_7768_prompt
 from .state import State
 
 load_dotenv()
@@ -70,10 +70,6 @@ def is_poem_request(greeting_instructions: str) -> dict:
     "thơ 5 chữ", "thơ năm chữ", "thơ ngũ ngôn", "thơ 5 chữ hiện đại",
     "thơ 5 chữ tự do", "thơ năm tiếng", "thơ 5 chữ ngắn", "thể thơ 5 chữ"
     ]   
-    poem_4words_keywords = [
-    "thơ 4 chữ", "thơ tứ ngôn", "thơ bốn chữ", "thơ ngắn 4 chữ",
-    "thể thơ 4 chữ", "thơ 4 tiếng", "thơ 4 âm tiết"
-    ]
     poem_7768_keywords = [
     "thơ song thất lục bát", "song thất lục bát", "thơ 7-7-6-8", "thơ 7768",
     "thơ truyền thống việt", "thơ thất thất lục bát", "thơ cổ điển",
@@ -86,8 +82,6 @@ def is_poem_request(greeting_instructions: str) -> dict:
         return {"is_poem": True, "poem_type": "song_that_luc_bat"}
     elif any(keyword in text_lower for keyword in poem_5words_keywords):
         return {"is_poem": True, "poem_type": "ngu_ngon"}
-    elif any(keyword in text_lower for keyword in poem_4words_keywords):
-        return {"is_poem": True, "poem_type": "tu_ngon"}
     elif any(keyword in text_lower for keyword in poem_68_keywords):
         return {"is_poem": True, "poem_type": "luc_bat"}
     
@@ -123,7 +117,22 @@ def llm_node(state: State) -> State:
     
     try:
         if poem_info["is_poem"]:
-            # If poem is requested, use system_poem_prompt
+            # Select appropriate poem prompt based on poem type
+            poem_type = poem_info["poem_type"]
+            if poem_type == "luc_bat":
+                system_poem_prompt = system_poem_68_prompt
+                logger.info("Using luc_bat (6-8) poem template")
+            elif poem_type == "ngu_ngon":
+                system_poem_prompt = system_poem_5words_prompt
+                logger.info("Using ngu_ngon (5 words) poem template")
+            elif poem_type == "song_that_luc_bat":
+                system_poem_prompt = system_poem_7768_prompt
+                logger.info("Using song_that_luc_bat (7-7-6-8) poem template")
+            else:
+                # Default to luc_bat if unknown poem type
+                system_poem_prompt = system_poem_68_prompt
+                logger.info(f"Unknown poem type {poem_type}, defaulting to luc_bat template")
+            
             messages = [
                 SystemMessage(content=system_poem_prompt),
                 HumanMessage(content=user_prompt)
